@@ -119,7 +119,7 @@ function AssessmentsList({ onBack }) {
     };
 
     return (
-        <div className="max-w-6xl mt-2 ml-2">
+        <div className="w-full px-4 md:px-8 mt-6">
             {/* Back Button */}
             {referrer && (
                 <button
@@ -176,53 +176,62 @@ function AssessmentsList({ onBack }) {
                         <table className="min-w-full">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Assessment Name
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Cohorts
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Duration
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Questions
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Status
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Created At
                                     </th>
-                                    {isAdminOrTrainer && (
-                                        <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    )}
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {assessments.map((assessment) => (
                                     <tr key={assessment.assessment_id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                        <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                                             {assessment.name}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                            <div className="flex gap-1">
-                                                {assessment.assigned_cohorts?.map((cohort, index) => (
-                                                    <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
-                                                        {cohort}
-                                                    </span>
-                                                ))}
+                                        <td className="px-4 py-4 text-sm text-gray-600">
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {assessment.assigned_cohorts?.length > 0 ? (
+                                                    <>
+                                                        {assessment.assigned_cohorts.slice(0, 3).map((cohort, index) => (
+                                                            <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                                                {cohort}
+                                                            </span>
+                                                        ))}
+                                                        {assessment.assigned_cohorts.length > 3 && (
+                                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-600 border border-gray-200">
+                                                                +{assessment.assigned_cohorts.length - 3}
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs italic">Unassigned</span>
+                                                )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                            {assessment.duration_minutes} mins
+                                        <td className="px-4 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                            {assessment.duration_minutes ? `${assessment.duration_minutes} mins` : 'N/A'}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                            {assessment.num_questions}
+                                        <td className="px-4 py-4 text-sm text-gray-600 whitespace-nowrap pl-8">
+                                            {assessment.num_questions || 0}
                                         </td>
-                                        <td className="px-6 py-4 text-sm whitespace-nowrap">
+                                        <td className="px-4 py-4 text-sm whitespace-nowrap">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${assessment.status === 'active'
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-gray-100 text-gray-800'
@@ -230,23 +239,23 @@ function AssessmentsList({ onBack }) {
                                                 {assessment.status || 'Active'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                                        <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
                                             {formatDate(assessment.created_at)}
                                         </td>
-                                        <td className="px-6 py-4 text-right whitespace-nowrap">
-                                            <div className="flex items-center justify-end gap-2">
+                                        <td className="px-4 py-4 text-left whitespace-nowrap">
+                                            <div className="flex items-center justify-start gap-2">
                                                 {isAdminOrTrainer ? (
                                                     <>
                                                         <button
                                                             onClick={() => handleEdit(assessment)}
-                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                             title="Edit"
                                                         >
                                                             <span className="material-symbols-outlined text-base">edit</span>
                                                         </button>
                                                         <button
                                                             onClick={() => setDeleteConfirm(assessment.assessment_id)}
-                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                             title="Delete"
                                                         >
                                                             <span className="material-symbols-outlined text-base">delete</span>
@@ -255,10 +264,10 @@ function AssessmentsList({ onBack }) {
                                                 ) : (
                                                     <button
                                                         onClick={() => navigate(`/assessment/take/${assessment.assessment_id}`)}
-                                                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                                                        className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium text-xs transition-colors flex items-center gap-1.5"
                                                     >
-                                                        <span className="material-symbols-outlined text-base">play_arrow</span>
-                                                        <span>Take Assessment</span>
+                                                        <span className="material-symbols-outlined text-sm">play_arrow</span>
+                                                        <span>Start</span>
                                                     </button>
                                                 )}
                                             </div>

@@ -1,11 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { useProctoring } from './hooks/useProctoring';
+import ProctoringWebcam from './components/ProctoringWebcam';
 
 function TakeAssessment() {
     const { assessmentId } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+
+    // Proctoring State
+    const [assessmentStarted, setAssessmentStarted] = useState(false);
+    const [cameraStatus, setCameraStatus] = useState({ status: 'ok', message: '' });
+    const [isTerminated, setIsTerminated] = useState(false);
+
+    const {
+        isFullScreen,
+        enterFullScreen,
+        exitFullScreen,
+        tabSwitchCount,
+        warnings
+    } = useProctoring({
+        enableTabSwitchDetection: assessmentStarted,
+        enableFullScreen: assessmentStarted
+    });
+
+    // Monitor for tab switch violations
+    useEffect(() => {
+        if (tabSwitchCount >= 3 && !isTerminated) {
+            setIsTerminated(true);
+            exitFullScreen(); // Exit full screen immediately on termination
+        }
+    }, [tabSwitchCount, isTerminated, exitFullScreen]);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -17,6 +43,7 @@ function TakeAssessment() {
     const [timeRemaining, setTimeRemaining] = useState(0);
     const [submitting, setSubmitting] = useState(false);
     const [markedForReview, setMarkedForReview] = useState(new Set());
+
 
     // Load session from localStorage on mount
     useEffect(() => {
@@ -100,18 +127,25 @@ function TakeAssessment() {
                 responseBody = JSON.parse(responseBody);
             }
 
-            if (responseBody && responseBody.valid) {
+            if (response.ok && responseBody && responseBody.valid) {
                 setTimeRemaining(responseBody.remaining_time || 0);
                 // Fetch questions if not already loaded
                 if (questions.length === 0) {
                     await fetchQuestionsWithSession(sid);
+                } else {
+                    setLoading(false);
                 }
             } else {
+                console.warn("Session validation failed or expired (410/404/Invalid).");
                 setError('Session expired. Please start a new assessment.');
                 localStorage.removeItem(`assessment_session_${assessmentId}`);
+                setLoading(false);
             }
         } catch (err) {
             console.error('Error validating session:', err);
+            // If validation crashes, try fetching fresh questions (new session)
+            // But if it was a 410, maybe we should just clear and stop?
+            // For now, let's allow fallback to fetchQuestions which handles its own loading state.
             fetchQuestions();
         }
     };
@@ -373,6 +407,7 @@ function TakeAssessment() {
                 console.log('Submission successful, score:', responseBody.score);
                 // Clear session from localStorage
                 localStorage.removeItem(`assessment_session_${assessmentId}`);
+                exitFullScreen(); // Exit full screen on successful submission
                 // Navigate to results page
                 navigate(`/assessment/results/${sessionId}`, {
                     state: {
@@ -434,54 +469,170 @@ function TakeAssessment() {
         );
     }
 
+    if (isTerminated) {
+        return (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center p-4 z-[100]">
+                <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center">
+                    <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span className="material-symbols-outlined text-red-600 text-5xl">gavel</span>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessment Terminated</h2>
+                    <p className="text-gray-600 mb-6">
+                        You have violated the assessment rules by switching tabs multiple times (3 violations).
+                        As a result, your assessment session has been shut down.
+                    </p>
+                    <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-8">
+                        <p className="text-sm text-red-800 font-medium">
+                            Violation: Tab Switching / Loss of Focus
+                        </p>
+                        <p className="text-xs text-red-600 mt-1">
+                            Recorded {tabSwitchCount} times.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => navigate('/assessments')}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-transform hover:scale-[1.02]"
+                    >
+                        Return to Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Proctoring State - Checkboxes
+    // Removed per user request
+
+    if (!assessmentStarted && !loading && !error) {
+        return (
+            <div className="fixed inset-0 bg-gray-50 flex flex-col items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center space-y-6">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                        <span className="material-symbols-outlined text-red-600 text-3xl">security</span>
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Proctored Assessment</h1>
+                        <p className="text-gray-600">
+                            This assessment is monitored. Please enable your camera and stay in full-screen mode.
+                        </p>
+                    </div>
+
+                    {/* Pre-flight Camera Check */}
+                    <div className="flex flex-col items-center justify-center bg-gray-100 rounded-lg p-4">
+                        <p className="text-sm font-semibold mb-2 text-gray-700">System Check</p>
+                        <ProctoringWebcam onStatusChange={setCameraStatus} />
+                        <div className={`mt-3 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${cameraStatus.status === 'ok'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
+                            }`}>
+                            <span className="material-symbols-outlined text-sm">
+                                {cameraStatus.status === 'ok' ? 'check_circle' : 'cancel'}
+                            </span>
+                            {cameraStatus.status === 'ok' ? 'Camera Ready' : cameraStatus.message || 'Detecting face...'}
+                        </div>
+                    </div>
+
+                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-4 text-left text-sm text-orange-800 space-y-2">
+                        <p className="font-semibold flex items-center gap-2">
+                            <span className="material-symbols-outlined text-lg">warning</span>
+                            Rules:
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 pl-1">
+                            <li>Face must be visible at all times</li>
+                            <li>No switching tabs or minimizing</li>
+                            <li>No additional people in view</li>
+                            <li>Full-screen mode is required</li>
+                        </ul>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            enterFullScreen();
+                            setAssessmentStarted(true);
+                        }}
+                        disabled={cameraStatus.status !== 'ok'}
+                        className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all transform hover:scale-[1.02] disabled:hover:scale-100"
+                    >
+                        {cameraStatus.status === 'ok' ? 'Start Assessment' : 'Waiting for Camera...'}
+                    </button>
+                    <button
+                        onClick={() => navigate('/assessments')}
+                        className="text-gray-500 hover:text-gray-700 font-medium text-sm"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     const currentQuestion = questions[currentQuestionIndex];
 
     return (
         <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 flex overflow-hidden z-50">
             {/* Sidebar */}
-            <div className="w-64 bg-white border-r border-gray-200 p-6 overflow-y-auto">
-                <h3 className="font-bold text-gray-900 mb-4">Assessment Progress</h3>
-
-                <div className="mb-6">
-                    <p className="text-sm text-gray-600 mb-1">Total Questions</p>
-                    <p className="text-2xl font-bold text-gray-900">{questions.length}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                        {currentQuestionIndex + 1} of {questions.length} answered
-                    </p>
+            <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
+                {/* Webcam Feed - Top of Sidebar */}
+                <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col items-center">
+                    <ProctoringWebcam onStatusChange={setCameraStatus} />
+                    {cameraStatus.status !== 'ok' && (
+                        <div className="mt-2 text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded flex items-center gap-1 animate-pulse">
+                            <span className="material-symbols-outlined text-base">warning</span>
+                            {cameraStatus.message}
+                        </div>
+                    )}
+                    {(tabSwitchCount > 0 || warnings.length > 0) && (
+                        <div className="mt-2 text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded w-full">
+                            <p><strong>Violations:</strong> {tabSwitchCount}</p>
+                            <p className="truncate">{warnings[warnings.length - 1]?.message}</p>
+                        </div>
+                    )}
                 </div>
 
-                <div className="mb-6">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Questions</p>
-                    <div className="grid grid-cols-5 gap-2">
-                        {questions.map((_, index) => {
-                            const status = getQuestionStatus(index);
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => setCurrentQuestionIndex(index)}
-                                    className={`w-10 h-10 rounded-lg font-semibold text-sm transition-colors ${index === currentQuestionIndex
-                                        ? 'bg-red-500 text-white'
-                                        : status === 'answered'
-                                            ? 'bg-green-500 text-white'
-                                            : status === 'review'
-                                                ? 'bg-orange-500 text-white'
-                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                        }`}
-                                >
-                                    {index + 1}
-                                </button>
-                            );
-                        })}
+                <div className="p-6 overflow-y-auto flex-1">
+                    <h3 className="font-bold text-gray-900 mb-4">Assessment Progress</h3>
+
+                    <div className="mb-6">
+                        <p className="text-sm text-gray-600 mb-1">Total Questions</p>
+                        <p className="text-2xl font-bold text-gray-900">{questions.length}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                            {currentQuestionIndex + 1} of {questions.length} answered
+                        </p>
                     </div>
-                </div>
 
-                <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
-                >
-                    {submitting ? 'Submitting...' : 'Submit Assessment'}
-                </button>
+                    <div className="mb-6">
+                        <p className="text-sm font-semibold text-gray-700 mb-2">Questions</p>
+                        <div className="grid grid-cols-5 gap-2">
+                            {questions.map((_, index) => {
+                                const status = getQuestionStatus(index);
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={() => setCurrentQuestionIndex(index)}
+                                        className={`w-10 h-10 rounded-lg font-semibold text-sm transition-colors ${index === currentQuestionIndex
+                                            ? 'bg-red-500 text-white'
+                                            : status === 'answered'
+                                                ? 'bg-green-500 text-white'
+                                                : status === 'review'
+                                                    ? 'bg-orange-500 text-white'
+                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                            }`}
+                                    >
+                                        {index + 1}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                        {submitting ? 'Submitting...' : 'Submit Assessment'}
+                    </button>
+                </div>
             </div>
 
             {/* Main Content */}
@@ -573,8 +724,8 @@ function TakeAssessment() {
                         <span className="material-symbols-outlined">arrow_forward</span>
                     </button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 

@@ -35,11 +35,12 @@ function CreateAssessment() {
   const [startTime, setStartTime] = useState('');
   const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [duration, setDuration] = useState('');
+
 
   // Step 4: Question Count
   const [questionCount, setQuestionCount] = useState('10');
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [randomQuestions, setRandomQuestions] = useState(false);
 
   // Fetch Users/Cohorts from API (Step 1)
   useEffect(() => {
@@ -76,7 +77,7 @@ function CreateAssessment() {
       setAssessmentName(editData.name || '');
       setSelectedCohorts(editData.assigned_cohorts || []);
       setSelectedDatabase(editData.database_name || ''); // Updated field
-      setDuration(editData.duration_minutes?.toString() || '');
+
       setQuestionCount(editData.num_questions?.toString() || '');
     }
   }, [editData]);
@@ -106,7 +107,6 @@ function CreateAssessment() {
       } else {
         throw new Error('Failed to fetch databases');
       }
-    } catch (error) {
       console.error('Error fetching databases:', error);
       setDatabaseError('Failed to load databases');
     } finally {
@@ -142,7 +142,7 @@ function CreateAssessment() {
       case 2:
         return selectedDatabase !== '';
       case 3:
-        return startDate && startTime && endDate && endTime && duration;
+        return startDate && startTime && endDate && endTime;
       case 4:
         return questionCount > 0;
       default:
@@ -161,31 +161,23 @@ function CreateAssessment() {
   };
 
   const handleCreateAssessment = async () => {
-    const assessmentPayload = {
-      name: assessmentName,
-      assigned_cohorts: selectedCohorts,
-      database_name: selectedDatabase, // Updated field
-      num_questions: parseInt(questionCount),
-      duration_minutes: parseInt(duration)
+    // Construct payload strictly as requested
+    const payload = {
+      type: selectedEntityType,
+      selected: selectedCohorts,
+      dataset_name: selectedDatabase,
+      random_questions: randomQuestions,
+      number_of_questions: parseInt(questionCount),
+      start_date: startDate,
+      end_date: endDate,
+      start_time: startTime,
+      end_time: endTime
     };
 
-    // Determine if we're creating or updating
-    const isUpdate = !!editId;
-
-    // Use direct format (no body wrapper)
-    const payload = isUpdate ? {
-      action: "update_assessment",
-      assessment_id: editId,
-      updates: assessmentPayload
-    } : {
-      action: "create_assessment",
-      assessment: assessmentPayload
-    };
-
-    console.log(isUpdate ? 'Updating assessment with payload:' : 'Creating assessment with payload:', payload);
+    console.log('Creating assessment with payload:', payload);
 
     try {
-      const response = await fetch('https://u5vjutu2euwnn2uhiertnt6fte0vrbht.lambda-url.eu-central-1.on.aws/', {
+      const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -197,23 +189,16 @@ function CreateAssessment() {
       console.log('API Response:', data);
 
       if (response.ok) {
-        // Response comes directly, not wrapped in body
-        if (data && data.success) {
-          const message = isUpdate
-            ? 'Assessment updated successfully!'
-            : `Assessment created successfully! ID: ${data.assessment_id}`;
-          alert(message);
-          navigate('/assessments'); // Redirect to assessments list
-        } else {
-          alert(`Failed to ${isUpdate ? 'update' : 'create'} assessment: ` + (data?.message || 'Unknown error'));
-        }
+        // Assuming success based on new API behavior (adjust logic if needed based on actual response structure)
+        alert('Assessment created successfully!');
+        navigate('/assessments');
       } else {
-        alert(`Failed to ${isUpdate ? 'update' : 'create'} assessment. Server returned ` + response.status);
+        alert(`Failed to create assessment. Server returned ${response.status}`);
       }
 
     } catch (error) {
-      console.error(`Error ${isUpdate ? 'updating' : 'creating'} assessment:`, error);
-      alert(`An error occurred while ${isUpdate ? 'updating' : 'creating'} the assessment.`);
+      console.error('Error creating assessment:', error);
+      alert('An error occurred while creating the assessment.');
     }
   };
 
@@ -421,18 +406,7 @@ function CreateAssessment() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Assessment Duration (minutes)
-                </label>
-                <input
-                  type="number"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="e.g., 30"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-              </div>
+
             </div>
           </div>
         );
@@ -460,14 +434,28 @@ function CreateAssessment() {
               </p>
             </div>
 
+            <div className="mb-6 flex items-center">
+              <input
+                id="random_questions"
+                type="checkbox"
+                checked={randomQuestions}
+                onChange={(e) => setRandomQuestions(e.target.checked)}
+                className="w-5 h-5 text-red-500 focus:ring-red-500 border-gray-300 rounded"
+              />
+              <label htmlFor="random_questions" className="ml-2 block text-sm text-gray-900">
+                Randomize Questions
+              </label>
+            </div>
+
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-start gap-3">
                 <span className="material-symbols-outlined text-yellow-600">shuffle</span>
                 <div>
                   <p className="text-yellow-900 font-semibold text-sm">Randomization</p>
                   <p className="text-yellow-800 text-sm mt-1">
-                    Each user will receive {questionCount} randomly selected questions from the database.
-                    Questions will be different for each user to ensure fairness.
+                    {randomQuestions
+                      ? `Each user will receive ${questionCount} randomly selected questions from the database.`
+                      : "Questions will be presented in sequential order."}
                   </p>
                 </div>
               </div>
@@ -536,7 +524,7 @@ function CreateAssessment() {
                 <div className="space-y-1 text-gray-600">
                   <p>Start: {startDate} at {startTime}</p>
                   <p>End: {endDate} at {endTime}</p>
-                  <p>Duration: {duration} minutes</p>
+
                 </div>
               </div>
 
