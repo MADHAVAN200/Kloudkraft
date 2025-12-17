@@ -13,28 +13,17 @@ function CreateAssessment() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
 
-  // Step 1: Assessment Details & Target Cohorts
+  // Step 1: Assessment Details
   const [assessmentName, setAssessmentName] = useState('');
-  const [selectedCohorts, setSelectedCohorts] = useState([]);
-  const [cohortSearch, setCohortSearch] = useState('');
 
-  // New States for API Data (Step 1)
-  const [selectedEntityType, setSelectedEntityType] = useState('cohorts'); // Default to cohorts
-  const [availableItems, setAvailableItems] = useState([]);
-  const [loadingItems, setLoadingItems] = useState(false);
-  const [itemError, setItemError] = useState('');
+  // Step 2: Dataset Selection
+  const [datasets, setDatasets] = useState([]);
+  const [selectedDataset, setSelectedDataset] = useState('');
+  const [loadingDatasets, setLoadingDatasets] = useState(false);
+  const [datasetError, setDatasetError] = useState('');
 
-  // Step 2: Database Selection (Replaced Dataset Selection)
-  const [databases, setDatabases] = useState([]);
-  const [selectedDatabase, setSelectedDatabase] = useState('');
-  const [loadingDatabases, setLoadingDatabases] = useState(false);
-  const [databaseError, setDatabaseError] = useState('');
-
-  // Step 3: Timing
-  const [startDate, setStartDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [endTime, setEndTime] = useState('');
+  // Step 3: Duration
+  const [duration, setDuration] = useState('60'); // Default 60 minutes
 
 
   // Step 4: Question Count
@@ -42,75 +31,60 @@ function CreateAssessment() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [randomQuestions, setRandomQuestions] = useState(false);
 
-  // Fetch Users/Cohorts from API (Step 1)
-  useEffect(() => {
-    const fetchItems = async () => {
-      setLoadingItems(true);
-      setItemError('');
-      setAvailableItems([]);
-      try {
-        const response = await fetch(`https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=${selectedEntityType}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        const result = await response.json();
 
-        if (selectedEntityType === 'users') {
-          setAvailableItems(result.users || []);
-        } else {
-          setAvailableItems(result.cohorts || []);
-        }
-      } catch (err) {
-        console.error('Error fetching items:', err);
-        setItemError('Failed to load data. Please try again.');
-      } finally {
-        setLoadingItems(false);
-      }
-    };
-
-    fetchItems();
-  }, [selectedEntityType]);
 
   // Populate form if in edit mode
   useEffect(() => {
     if (editData) {
       setAssessmentName(editData.name || '');
-      setSelectedCohorts(editData.assigned_cohorts || []);
-      setSelectedDatabase(editData.database_name || ''); // Updated field
-
+      setSelectedDataset(editData.csv_s3_key || '');
+      setDuration(editData.duration_minutes?.toString() || '60');
       setQuestionCount(editData.num_questions?.toString() || '');
     }
   }, [editData]);
 
-  // Fetch Databases from API (Step 2)
+  // Fetch Datasets from API (Step 2)
   useEffect(() => {
     if (currentStep === 2) {
-      fetchDatabases();
+      fetchDatasets();
     }
   }, [currentStep]);
 
-  const fetchDatabases = async () => {
-    setLoadingDatabases(true);
-    setDatabaseError('');
+  const fetchDatasets = async () => {
+    setLoadingDatasets(true);
+    setDatasetError('');
     try {
-      // Use new GET API for databases
-      const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=databases');
+      // Use new list_datasets API via proxy
+      const payload = {
+        action: "list_datasets"
+      };
+
+      const response = await fetch('/assessment-mgmt-api/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      // Response comes directly, not wrapped in body (based on curl test)
+      const responseBody = data;
 
-      if (data && data.databases) {
-        setDatabases(data.databases);
+      if (responseBody && responseBody.success && responseBody.datasets) {
+        setDatasets(responseBody.datasets);
       } else {
-        throw new Error('Failed to fetch databases');
+        throw new Error('Failed to fetch datasets');
       }
-      console.error('Error fetching databases:', error);
-      setDatabaseError('Failed to load databases');
+    } catch (error) {
+      console.error('Error fetching datasets:', error);
+      setDatasetError('Failed to load datasets');
     } finally {
-      setLoadingDatabases(false);
+      setLoadingDatasets(false);
     }
   };
 
@@ -122,27 +96,17 @@ function CreateAssessment() {
     setTotalQuestions(100);
   };
 
-  const filteredCohorts = availableItems.filter(
-    (item) =>
-      item.toLowerCase().includes(cohortSearch.toLowerCase())
-  );
 
-  const toggleCohortSelection = (cohortId) => {
-    setSelectedCohorts((prev) =>
-      prev.includes(cohortId)
-        ? prev.filter((id) => id !== cohortId)
-        : [...prev, cohortId]
-    );
-  };
 
   const validateStep = () => {
     switch (currentStep) {
       case 1:
-        return assessmentName.trim() !== '' && selectedCohorts.length > 0;
+        return assessmentName.trim() !== '';
       case 2:
-        return selectedDatabase !== '';
+        return selectedDataset !== '';
       case 3:
-        return startDate && startTime && endDate && endTime;
+      case 3:
+        return parseInt(duration) > 0;
       case 4:
         return questionCount > 0;
       default:
@@ -162,22 +126,29 @@ function CreateAssessment() {
 
   const handleCreateAssessment = async () => {
     // Construct payload strictly as requested
-    const payload = {
-      type: selectedEntityType,
-      selected: selectedCohorts,
-      dataset_name: selectedDatabase,
-      random_questions: randomQuestions,
-      number_of_questions: parseInt(questionCount),
-      start_date: startDate,
-      end_date: endDate,
-      start_time: startTime,
-      end_time: endTime
+    // Construct payload strictly as requested for create_assessment
+    const assessmentData = {
+      name: assessmentName,
+      assigned_cohorts: [], // Empty array as per requirement
+      csv_s3_key: selectedDataset, // This is the s3_key
+      num_questions: parseInt(questionCount),
+      duration_minutes: parseInt(duration),
+      random_questions: randomQuestions
+    };
+
+    const payload = editId ? {
+      action: "update_assessment",
+      assessment_id: editId,
+      update: assessmentData
+    } : {
+      action: "create_assessment",
+      assessment: assessmentData
     };
 
     console.log('Creating assessment with payload:', payload);
 
     try {
-      const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin', {
+      const response = await fetch('/assessment-mgmt-api/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -188,12 +159,18 @@ function CreateAssessment() {
       const data = await response.json();
       console.log('API Response:', data);
 
-      if (response.ok) {
-        // Assuming success based on new API behavior (adjust logic if needed based on actual response structure)
-        alert('Assessment created successfully!');
+      let responseBody = data.body;
+      if (typeof responseBody === 'string') {
+        responseBody = JSON.parse(responseBody);
+      } else {
+        responseBody = data;
+      }
+
+      if (responseBody && responseBody.success) {
+        alert(editId ? 'Assessment updated successfully!' : 'Assessment created successfully!');
         navigate('/assessments');
       } else {
-        alert(`Failed to create assessment. Server returned ${response.status}`);
+        alert(`Failed to ${editId ? 'update' : 'create'} assessment: ${responseBody?.message || 'Unknown error'}`);
       }
 
     } catch (error) {
@@ -208,7 +185,7 @@ function CreateAssessment() {
         return (
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Assessment Details</h2>
-            <p className="text-gray-600 mb-6">Enter assessment name and select target users or cohorts</p>
+            <p className="text-gray-600 mb-6">Enter assessment name</p>
 
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -222,124 +199,52 @@ function CreateAssessment() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Select Target Type
-              </label>
-              <select
-                value={selectedEntityType}
-                onChange={(e) => {
-                  setSelectedEntityType(e.target.value);
-                  setSelectedCohorts([]); // Clear selection when switching type
-                }}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
-              >
-                <option value="cohorts">Cohorts</option>
-                <option value="users">Users</option>
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Select {selectedEntityType === 'users' ? 'Users' : 'Cohorts'}
-              </label>
-              <input
-                type="text"
-                placeholder={`Search ${selectedEntityType}...`}
-                value={cohortSearch}
-                onChange={(e) => setCohortSearch(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
-              />
-            </div>
-
-            {loadingItems ? (
-              <div className="text-center py-8">
-                <span className="material-symbols-outlined animate-spin text-3xl text-red-500">progress_activity</span>
-              </div>
-            ) : itemError ? (
-              <div className="text-center py-8 text-red-500">
-                <p>{itemError}</p>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {filteredCohorts.length > 0 ? (
-                  filteredCohorts.map((item) => (
-                    <div
-                      key={item}
-                      onClick={() => toggleCohortSelection(item)}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedCohorts.includes(item)
-                        ? 'border-red-500 bg-red-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-gray-900">{item}</p>
-                        </div>
-                        {selectedCohorts.includes(item) && (
-                          <span className="material-symbols-outlined text-red-500">check_circle</span>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    No items found.
-                  </div>
-                )}
-              </div>
-            )}
-
-            <p className="mt-4 text-sm text-gray-600">
-              Selected: {selectedCohorts.length} {selectedEntityType}
-            </p>
-          </div >
+          </div>
         );
 
       case 2:
         return (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Select Database</h2>
-            <p className="text-gray-600 mb-6">Choose the database for this assessment</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Select Dataset</h2>
+            <p className="text-gray-600 mb-6">Choose the dataset (question set) for this assessment</p>
 
-            {databaseError && (
+            {datasetError && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                {databaseError}
+                {datasetError}
               </div>
             )}
 
-            {loadingDatabases ? (
+            {loadingDatasets ? (
               <div className="text-center py-8">
                 <span className="material-symbols-outlined animate-spin text-4xl text-red-500">progress_activity</span>
-                <p className="mt-2 text-gray-600">Loading databases...</p>
+                <p className="mt-2 text-gray-600">Loading datasets...</p>
               </div>
             ) : (
               <>
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Available Databases
+                    Available Datasets
                   </label>
                   <select
-                    value={selectedDatabase}
-                    onChange={(e) => setSelectedDatabase(e.target.value)}
+                    value={selectedDataset}
+                    onChange={(e) => setSelectedDataset(e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
-                    <option value="">Select a database...</option>
-                    {databases.map((db) => (
-                      <option key={db} value={db}>
-                        {db}
+                    <option value="">Select a dataset...</option>
+                    {datasets.map((ds) => (
+                      <option key={ds.s3_key} value={ds.s3_key}>
+                        {ds.filename || ds.s3_key}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                {selectedDatabase && (
+                {selectedDataset && (
                   <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <span className="material-symbols-outlined text-blue-600">database</span>
+                      <span className="material-symbols-outlined text-blue-600">description</span>
                       <div>
-                        <p className="text-blue-900 font-semibold text-sm">Selected Database: {selectedDatabase}</p>
+                        <p className="text-blue-900 font-semibold text-sm">Selected Dataset Key: {selectedDataset}</p>
                       </div>
                     </div>
                   </div>
@@ -352,61 +257,23 @@ function CreateAssessment() {
       case 3:
         return (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Set Assessment Timing</h2>
-            <p className="text-gray-600 mb-6">Configure when the assessment will be available</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Set Duration</h2>
+            <p className="text-gray-600 mb-6">Set the time limit for the assessment in minutes</p>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    End Time
-                  </label>
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-              </div>
-
-
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Duration (minutes)
+              </label>
+              <input
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                min="1"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                For example 60 for 1 hour, 30 for 30 minutes.
+              </p>
             </div>
           </div>
         );
@@ -482,25 +349,14 @@ function CreateAssessment() {
                 </div>
                 <p className="text-gray-600 font-medium">{assessmentName}</p>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-500 mb-1">Target {selectedEntityType === 'users' ? 'Users' : 'Cohorts'}:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedCohorts.map((item) => {
-                      return (
-                        <span
-                          key={item}
-                          className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm"
-                        >
-                          {item}
-                        </span>
-                      );
-                    })}
-                  </div>
+                  <p className="text-sm text-gray-500 mb-1">Target Audience:</p>
+                  <p className="text-sm font-medium text-gray-900">Open to all (Link sharing)</p>
                 </div>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Database</h3>
+                  <h3 className="font-semibold text-gray-900">Dataset</h3>
                   <button
                     onClick={() => setCurrentStep(2)}
                     className="text-red-500 hover:text-red-600 text-sm font-semibold"
@@ -508,12 +364,14 @@ function CreateAssessment() {
                     Edit
                   </button>
                 </div>
-                <p className="text-gray-600">{selectedDatabase}</p>
+                <p className="text-gray-600">
+                  {datasets.find(d => d.s3_key === selectedDataset)?.filename || selectedDataset}
+                </p>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Timing</h3>
+                  <h3 className="font-semibold text-gray-900">Duration</h3>
                   <button
                     onClick={() => setCurrentStep(3)}
                     className="text-red-500 hover:text-red-600 text-sm font-semibold"
@@ -522,9 +380,7 @@ function CreateAssessment() {
                   </button>
                 </div>
                 <div className="space-y-1 text-gray-600">
-                  <p>Start: {startDate} at {startTime}</p>
-                  <p>End: {endDate} at {endTime}</p>
-
+                  <p>{duration} Minutes</p>
                 </div>
               </div>
 
@@ -560,7 +416,7 @@ function CreateAssessment() {
   };
 
   return (
-    <div className="max-w-4xl mt-2 ml-2">
+    <div className="max-w-4xl mx-auto mt-6 px-4">
       {/* Back Button */}
       {referrer && (
         <button
@@ -578,26 +434,26 @@ function CreateAssessment() {
           {[
             { num: 1, label: 'Details' },
             { num: 2, label: 'Dataset' },
-            { num: 3, label: 'Timing' },
+            { num: 3, label: 'Duration' },
             { num: 4, label: 'Questions' },
             { num: 5, label: 'Review' },
           ].map((step, index) => (
             <React.Fragment key={step.num}>
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${step.num <= currentStep
+                  className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center font-bold text-sm md:text-lg transition-all ${step.num <= currentStep
                     ? 'bg-red-500 text-white'
                     : 'bg-gray-200 text-gray-600'
                     }`}
                 >
                   {step.num}
                 </div>
-                <span className="text-sm text-gray-600 mt-2">{step.label}</span>
+                <span className="hidden sm:block text-xs md:text-sm text-gray-600 mt-2">{step.label}</span>
               </div>
               {index < 4 && (
-                <div className="flex-1 h-1 mx-4 mb-6">
+                <div className="flex-1 h-0.5 md:h-1 mx-2 md:mx-4 mb-0 sm:mb-6 self-center">
                   <div
-                    className={`h-full ${step.num < currentStep ? 'bg-red-500' : 'bg-gray-200'
+                    className={`h-full transition-all duration-300 ${step.num < currentStep ? 'bg-red-500' : 'bg-gray-200'
                       }`}
                   />
                 </div>

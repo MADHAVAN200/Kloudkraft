@@ -7,19 +7,19 @@ import Login from './Login.jsx';
 import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import Dashboard from './Dashboard.jsx';
-import SQLPlayground from './SQLPlayground.jsx';
-import CreateAssessment from './CreateAssessment.jsx';
-import DatasetUpload from './DatasetUpload.jsx';
+import SQLPlayground from './modules/sql-assessment/SQLPlayground.jsx';
+import CreateAssessment from './modules/assessment/CreateAssessment.jsx';
+import DatasetUpload from './modules/sql-assessment/DatasetUpload.jsx';
 import VirtualMachine from './VirtualMachine.jsx';
 import CloudConsole from './CloudConsole.jsx';
 import CloudLabs from './CloudLabs.jsx';
-import Assessments from './Assessments.jsx';
-import AssessmentsList from './components/AssessmentsList.jsx';
-import TakeAssessment from './TakeAssessment.jsx';
-import AssessmentResults from './AssessmentResults.jsx';
+import Assessments from './modules/assessment/Assessments.jsx';
+import AssessmentsList from './modules/assessment/AssessmentsList.jsx';
+import TakeAssessment from './modules/assessment/TakeAssessment.jsx';
+import AssessmentResults from './modules/assessment/AssessmentResults.jsx';
 import Reports from './Reports.jsx';
-import AvailableDatasets from './AvailableDatasets.jsx';
-import UsersAndCohorts from './UsersAndCohorts.jsx';
+import AvailableDatasets from './modules/sql-assessment/AvailableDatasets.jsx';
+import UsersAndCohorts from './modules/sql-assessment/UsersAndCohorts.jsx';
 
 function KloudkraftAdminContent() {
   return (

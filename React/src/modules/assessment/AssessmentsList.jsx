@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 function AssessmentsList({ onBack }) {
     const navigate = useNavigate();
@@ -25,11 +25,12 @@ function AssessmentsList({ onBack }) {
         setError(null);
         try {
             // Use direct format (no body wrapper)
+            // Use direct format (no body wrapper)
             const payload = {
                 action: "list_assessments"
             };
 
-            const response = await fetch('https://u5vjutu2euwnn2uhiertnt6fte0vrbht.lambda-url.eu-central-1.on.aws/', {
+            const response = await fetch('/assessment-mgmt-api/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -43,11 +44,13 @@ function AssessmentsList({ onBack }) {
 
             const data = await response.json();
 
-            // Response comes directly, not wrapped in body
-            if (data && data.success) {
-                setAssessments(data.assessments || []);
+            // Parse response body
+            const responseBody = data;
+
+            if (responseBody && responseBody.success) {
+                setAssessments(responseBody.assessments || []);
             } else {
-                throw new Error(data?.message || 'Failed to fetch assessments');
+                throw new Error(responseBody?.message || 'Failed to fetch assessments');
             }
 
         } catch (err) {
@@ -74,12 +77,13 @@ function AssessmentsList({ onBack }) {
     const deleteAssessment = async (assessmentId) => {
         try {
             // Use direct format (no body wrapper)
+            // Use direct format (no body wrapper)
             const payload = {
                 action: "delete_assessment",
                 assessment_id: assessmentId
             };
 
-            const response = await fetch('https://u5vjutu2euwnn2uhiertnt6fte0vrbht.lambda-url.eu-central-1.on.aws/', {
+            const response = await fetch('/assessment-mgmt-api/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -132,14 +136,14 @@ function AssessmentsList({ onBack }) {
             )}
 
             {/* Header */}
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Assessments</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Assessments</h1>
                     <p className="text-gray-600 text-sm">Manage and view all created assessments.</p>
                 </div>
                 <button
                     onClick={fetchAssessments}
-                    className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors self-end sm:self-auto"
                     title="Refresh"
                 >
                     <span className="material-symbols-outlined">refresh</span>
@@ -173,28 +177,25 @@ function AssessmentsList({ onBack }) {
             ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full">
+                        <table className="min-w-full table-fixed">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="w-[30%] px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Assessment Name
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Cohorts
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="w-[15%] px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Duration
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="w-[10%] px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Questions
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="w-[10%] px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Status
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="w-[20%] px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Created At
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="w-[15%] px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
@@ -202,36 +203,16 @@ function AssessmentsList({ onBack }) {
                             <tbody className="divide-y divide-gray-100">
                                 {assessments.map((assessment) => (
                                     <tr key={assessment.assessment_id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                        <td className="px-4 py-4 text-sm font-medium text-gray-900 truncate" title={assessment.name}>
                                             {assessment.name}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600">
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {assessment.assigned_cohorts?.length > 0 ? (
-                                                    <>
-                                                        {assessment.assigned_cohorts.slice(0, 3).map((cohort, index) => (
-                                                            <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                                                                {cohort}
-                                                            </span>
-                                                        ))}
-                                                        {assessment.assigned_cohorts.length > 3 && (
-                                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-600 border border-gray-200">
-                                                                +{assessment.assigned_cohorts.length - 3}
-                                                            </span>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <span className="text-gray-400 text-xs italic">Unassigned</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                        <td className="px-4 py-4 text-sm text-gray-600 text-center whitespace-nowrap">
                                             {assessment.duration_minutes ? `${assessment.duration_minutes} mins` : 'N/A'}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600 whitespace-nowrap pl-8">
+                                        <td className="px-4 py-4 text-sm text-gray-600 text-center whitespace-nowrap">
                                             {assessment.num_questions || 0}
                                         </td>
-                                        <td className="px-4 py-4 text-sm whitespace-nowrap">
+                                        <td className="px-4 py-4 text-sm text-center whitespace-nowrap">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${assessment.status === 'active'
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-gray-100 text-gray-800'
@@ -239,11 +220,11 @@ function AssessmentsList({ onBack }) {
                                                 {assessment.status || 'Active'}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
+                                        <td className="px-4 py-4 text-sm text-gray-500 text-center whitespace-nowrap">
                                             {formatDate(assessment.created_at)}
                                         </td>
-                                        <td className="px-4 py-4 text-left whitespace-nowrap">
-                                            <div className="flex items-center justify-start gap-2">
+                                        <td className="px-4 py-4 text-center whitespace-nowrap">
+                                            <div className="flex items-center justify-center gap-2">
                                                 {isAdminOrTrainer ? (
                                                     <>
                                                         <button
@@ -252,6 +233,13 @@ function AssessmentsList({ onBack }) {
                                                             title="Edit"
                                                         >
                                                             <span className="material-symbols-outlined text-base">edit</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => navigate(`/assessment/take/${assessment.assessment_id}`)}
+                                                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                            title="Take Assessment"
+                                                        >
+                                                            <span className="material-symbols-outlined text-base">play_arrow</span>
                                                         </button>
                                                         <button
                                                             onClick={() => setDeleteConfirm(assessment.assessment_id)}

@@ -3,28 +3,44 @@ import { useNavigate } from 'react-router-dom';
 
 function AvailableDatasets() {
     const navigate = useNavigate();
-    const [databases, setDatabases] = useState([]);
+    const [datasets, setDatasets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchDatabases = async () => {
+        const fetchDatasets = async () => {
             try {
-                const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=databases');
+                const payload = {
+                    action: "list_datasets"
+                };
+
+                const response = await fetch('/assessment-mgmt-api/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
                 if (!response.ok) {
-                    throw new Error('Failed to fetch databases');
+                    throw new Error('Failed to fetch datasets');
                 }
                 const data = await response.json();
-                setDatabases(data.databases || []);
+
+                const responseBody = data;
+
+                if (responseBody && responseBody.success) {
+                    setDatasets(responseBody.datasets || []);
+                } else {
+                    throw new Error('Failed to load datasets');
+                }
             } catch (err) {
-                console.error('Error fetching databases:', err);
-                setError('Failed to load databases. Please try again later.');
+                console.error('Error fetching datasets:', err);
+                setError('Failed to load datasets. Please try again later.');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchDatabases();
+        fetchDatasets();
     }, []);
 
     return (
@@ -50,7 +66,7 @@ function AvailableDatasets() {
                             <span className="font-semibold text-gray-700">Database List</span>
                         </div>
                         <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                            Total: {databases.length}
+                            Total: {datasets.length}
                         </span>
                     </div>
 
@@ -69,16 +85,16 @@ function AvailableDatasets() {
                                     </p>
                                 </div>
                             </div>
-                        ) : databases.length > 0 ? (
+                        ) : datasets.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {databases.map((db, index) => (
+                                {datasets.map((dataset, index) => (
                                     <div key={index} className="flex items-center p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow hover:border-red-300 group">
                                         <div className="bg-red-50 p-3 rounded-lg mr-4 group-hover:bg-red-100 transition-colors">
-                                            <span className="material-symbols-outlined text-red-500">dns</span>
+                                            <span className="material-symbols-outlined text-red-500">description</span>
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-900 text-sm truncate max-w-[200px]" title={db}>{db}</h3>
-                                            <p className="text-xs text-gray-500">Database</p>
+                                            <h3 className="font-semibold text-gray-900 text-sm truncate max-w-[200px]" title={dataset.filename}>{dataset.filename}</h3>
+                                            <p className="text-xs text-gray-500">{(dataset.size / 1024).toFixed(2)} KB</p>
                                         </div>
                                     </div>
                                 ))}

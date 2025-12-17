@@ -27,60 +27,6 @@ const ProctoringWebcam = ({ onStatusChange }) => {
         loadModels();
     }, []);
 
-    const handleVideoOnPlay = () => {
-        const interval = setInterval(async () => {
-            if (webcamRef.current && webcamRef.current.video.readyState === 4) {
-                const video = webcamRef.current.video;
-                const videoWidth = webcamRef.current.video.videoWidth;
-                const videoHeight = webcamRef.current.video.videoHeight;
-
-                // Set canvas dimensions
-                if (canvasRef.current) {
-                    canvasRef.current.width = videoWidth;
-                    canvasRef.current.height = videoHeight;
-                }
-
-                try {
-                    // Detect faces
-                    const detections = await faceapi.detectAllFaces(
-                        video,
-                        new faceapi.TinyFaceDetectorOptions()
-                    );
-                    // .withFaceLandmarks(); // Optional: heavier, add if needed for "looking away"
-
-                    // Resize detections to match video size
-                    const resizedDetections = faceapi.resizeResults(detections, { width: videoWidth, height: videoHeight });
-
-                    // Draw detections on canvas
-                    if (canvasRef.current) {
-                        const context = canvasRef.current.getContext('2d');
-                        context.clearRect(0, 0, videoWidth, videoHeight);
-                        faceapi.draw.drawDetections(canvasRef.current, resizedDetections);
-                    }
-
-                    // Evaluate Status
-                    let status = 'ok';
-                    let message = '';
-                    if (detections.length === 0) {
-                        status = 'missing';
-                        message = 'No face detected';
-                    } else if (detections.length > 1) {
-                        status = 'multiple';
-                        message = 'Multiple faces detected';
-                    }
-
-                    if (onStatusChange) {
-                        onStatusChange({ status, message });
-                    }
-                } catch (err) {
-                    console.error("Detection error:", err);
-                }
-            }
-        }, 1000); // Check every 1s to save performance
-
-        return () => clearInterval(interval);
-    };
-
     return (
         <div className="relative w-64 h-48 bg-black rounded-lg overflow-hidden border-2 border-slate-700 shadow-lg">
             {!modelsLoaded && (
@@ -97,8 +43,6 @@ const ProctoringWebcam = ({ onStatusChange }) => {
                 ref={webcamRef}
                 audio={false}
                 className="absolute inset-0 w-full h-full object-cover"
-                onUserMedia={handleVideoOnPlay} // Simplified trigger
-            // onPlay is better but sometimes tricky with react-webcam, using onUserMedia + Effect or just internal interval ok
             />
 
             {/* Overlay Canvas for bounding boxes */}
@@ -115,7 +59,13 @@ const ProctoringWebcam = ({ onStatusChange }) => {
 
 // Separated component to cleanly manage the interval effect
 const DetectionLoop = ({ webcamRef, canvasRef, onStatusChange }) => {
-    const missingFramesRef = useRef(0);
+    // Refs for debouncing/persistence
+    const statusPersistenceRef = useRef({
+        missing: 0,
+        multiple: 0,
+        ok: 0
+    });
+    const lastEmittedStatusRef = useRef({ status: 'ok', message: '' });
 
     useEffect(() => {
         const interval = setInterval(async () => {
@@ -123,10 +73,9 @@ const DetectionLoop = ({ webcamRef, canvasRef, onStatusChange }) => {
                 try {
                     const video = webcamRef.current.video;
 
-                    // Ultra-lenient settings for low-quality cameras
-                    // scoreThreshold: 0.1 allows very poor quality faces to be detected
-                    // inputSize: 224 improves performance on low-end devices while maintaining decent detection
-                    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.1 });
+                    // Reverting to TinyFaceDetector as SSD model files are missing
+                    // Increased inputSize to 512 for 'stronger' detection (better at small/background faces)
+                    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.1 });
                     const detections = await faceapi.detectAllFaces(video, options);
 
                     // Draw
@@ -138,37 +87,66 @@ const DetectionLoop = ({ webcamRef, canvasRef, onStatusChange }) => {
                         faceapi.draw.drawDetections(canvasRef.current, resizedDetections);
                     }
 
-                    // Logic with Debounce
-                    let status = 'ok';
-                    let message = '';
+                    // Raw status for this frame
+                    let currentFrameStatus = 'ok';
+                    let currentFrameMessage = '';
 
                     if (detections.length === 0) {
-                        missingFramesRef.current += 1;
-                        // Only fail after ~3 seconds (6 checks * 500ms) of consistent failure to handle camera glitch/lag
-                        if (missingFramesRef.current < 6) {
-                            // Keep previous status or assume ok during grace period
-                            // We return early to avoid sending a 'missing' update
-                            return;
-                        }
-                        status = 'missing';
-                        message = 'Face not visible';
-                    } else {
-                        // Face found, reset counter immediately
-                        missingFramesRef.current = 0;
-
-                        if (detections.length > 1) {
-                            status = 'multiple';
-                            message = 'Multiple people detected';
-                        }
+                        currentFrameStatus = 'missing';
+                        currentFrameMessage = 'Face not visible';
+                    } else if (detections.length > 1) {
+                        currentFrameStatus = 'multiple';
+                        currentFrameMessage = 'Multiple people detected';
                     }
 
-                    if (onStatusChange) onStatusChange({ status, message });
+                    // Update persistence counters
+                    const counters = statusPersistenceRef.current;
+                    if (currentFrameStatus === 'missing') {
+                        counters.missing++;
+                        counters.multiple = 0;
+                        counters.ok = 0;
+                    } else if (currentFrameStatus === 'multiple') {
+                        counters.multiple++;
+                        counters.missing = 0;
+                        counters.ok = 0;
+                    } else {
+                        counters.ok++;
+                        counters.missing = 0;
+                        counters.multiple = 0;
+                    }
+
+                    // Determination Logic with Persistence Thresholds
+                    // We only switch to a new status if it has persisted for X frames
+                    let outputStatus = lastEmittedStatusRef.current.status;
+                    let outputMessage = lastEmittedStatusRef.current.message;
+
+                    // Thresholds (assuming 500ms interval):
+                    // missing: 3 frames (1.5s)
+                    // multiple: 2 frames (1.0s) - quicker to catch cheaters, but debounced for noise
+                    // ok: 2 frames (1.0s) - stable recovery
+
+                    if (counters.missing >= 3) {
+                        outputStatus = 'missing';
+                        outputMessage = 'Face not visible';
+                    } else if (counters.multiple >= 2) {
+                        outputStatus = 'multiple';
+                        outputMessage = 'Multiple people detected';
+                    } else if (counters.ok >= 2) {
+                        outputStatus = 'ok';
+                        outputMessage = '';
+                    }
+
+                    // Emit event only if status has consistently changed from LAST EMITTED status
+                    if (outputStatus !== lastEmittedStatusRef.current.status) {
+                        lastEmittedStatusRef.current = { status: outputStatus, message: outputMessage };
+                        if (onStatusChange) onStatusChange({ status: outputStatus, message: outputMessage });
+                    }
 
                 } catch (e) {
                     console.error("Detection Loop Error:", e);
                 }
             }
-        }, 500);
+        }, 500); // 500ms Check Interval
         return () => clearInterval(interval);
     }, [webcamRef, canvasRef, onStatusChange]);
 

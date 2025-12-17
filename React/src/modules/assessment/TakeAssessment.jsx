@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
-import { useProctoring } from './hooks/useProctoring';
-import ProctoringWebcam from './components/ProctoringWebcam';
+import { useAuth } from '../../contexts/AuthContext';
+import { useProctoring } from '../../hooks/useProctoring';
+import ProctoringWebcam from '../../components/ProctoringWebcam';
 
 function TakeAssessment() {
     const { assessmentId } = useParams();
@@ -13,6 +13,9 @@ function TakeAssessment() {
     const [assessmentStarted, setAssessmentStarted] = useState(false);
     const [cameraStatus, setCameraStatus] = useState({ status: 'ok', message: '' });
     const [isTerminated, setIsTerminated] = useState(false);
+    const [terminationReason, setTerminationReason] = useState(null); // 'tab_switch', 'multiple_faces', or 'no_face'
+    const [multipleFacesCount, setMultipleFacesCount] = useState(0);
+    const [noFaceCount, setNoFaceCount] = useState(0);
 
     const {
         isFullScreen,
@@ -27,11 +30,33 @@ function TakeAssessment() {
 
     // Monitor for tab switch violations
     useEffect(() => {
-        if (tabSwitchCount >= 3 && !isTerminated) {
-            setIsTerminated(true);
-            exitFullScreen(); // Exit full screen immediately on termination
+        if (!isTerminated) {
+            // Tab Switch Violation
+            if (tabSwitchCount >= 30) {
+                setTerminationReason('tab_switch');
+                setIsTerminated(true);
+                exitFullScreen();
+            }
         }
     }, [tabSwitchCount, isTerminated, exitFullScreen]);
+
+    // Handle camera status changes for PROCTORING FEEDBACK only
+    const handleCameraStatusChange = React.useCallback((newStatus) => {
+        setCameraStatus(newStatus);
+    }, []);
+
+    // Dedicated effect for COUNTING violations
+    // This ensures we count transitions cleanly without double-counting (Strict Mode)
+    // or rapid-fire counting (due to unstable dependencies)
+    useEffect(() => {
+        if (!isTerminated && assessmentStarted) {
+            if (cameraStatus.status === 'multiple') {
+                setMultipleFacesCount(prev => prev + 1);
+            } else if (cameraStatus.status === 'missing') {
+                setNoFaceCount(prev => prev + 1);
+            }
+        }
+    }, [cameraStatus.status, assessmentStarted, isTerminated]); // Dependencies must be complete to avoid stale closures
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -109,16 +134,14 @@ function TakeAssessment() {
     const validateAndLoadSession = async (sid) => {
         try {
             const payload = {
-                body: JSON.stringify({
-                    action: "validate_session",
-                    session_id: sid
-                })
+                action: "validate_session",
+                session_id: sid
             };
 
             const response = await fetch('/assessment-api/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: payload.body
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
@@ -155,16 +178,14 @@ function TakeAssessment() {
 
         try {
             const payload = {
-                body: JSON.stringify({
-                    action: "validate_session",
-                    session_id: sessionId
-                })
+                action: "validate_session",
+                session_id: sessionId
             };
 
             const response = await fetch('/assessment-api/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: payload.body
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
@@ -217,22 +238,19 @@ function TakeAssessment() {
             console.log('User ID (with timestamp for retakes):', userId);
 
             const payload = {
-                body: JSON.stringify({
-                    action: "get_questions",
-                    assessment_id: assessmentId,
-                    user_id: userId
-                })
+                action: "get_questions",
+                assessment_id: assessmentId,
+                user_id: userId
             };
 
             console.log('Payload object:', payload);
-            console.log('Payload.body (already stringified):', payload.body);
 
             const response = await fetch('/assessment-api/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: payload.body  // Send the already-stringified body directly
+                body: JSON.stringify(payload)
             });
 
             console.log('Response status:', response.status);
@@ -341,16 +359,14 @@ function TakeAssessment() {
             // Validate session before submitting
             console.log('Validating session before submission...');
             const validatePayload = {
-                body: JSON.stringify({
-                    action: "validate_session",
-                    session_id: sessionId
-                })
+                action: "validate_session",
+                session_id: sessionId
             };
 
             const validateResponse = await fetch('/assessment-api/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: validatePayload.body
+                body: JSON.stringify(validatePayload)
             });
 
             const validateData = await validateResponse.json();
@@ -373,17 +389,15 @@ function TakeAssessment() {
             // Proceed with submission
             console.log('Session valid, submitting answers...');
             const payload = {
-                body: JSON.stringify({
-                    action: "submit_answers",
-                    session_id: sessionId,
-                    answers: answers
-                })
+                action: "submit_answers",
+                session_id: sessionId,
+                answers: answers
             };
 
             const response = await fetch('/assessment-api/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: payload.body
+                body: JSON.stringify(payload)
             });
 
             console.log('Submit response status:', response.status);
@@ -478,19 +492,35 @@ function TakeAssessment() {
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessment Terminated</h2>
                     <p className="text-gray-600 mb-6">
-                        You have violated the assessment rules by switching tabs multiple times (3 violations).
+                        {terminationReason === 'multiple_faces'
+                            ? "Multiple people were detected in your camera feed multiple times. This is a violation of the assessment integrity rules."
+                            : terminationReason === 'no_face'
+                                ? "Your face was not detected in the camera feed multiple times (4 violations). You must stay visible at all times."
+                                : "You have violated the assessment rules by switching tabs or minimizing the browser multiple times."
+                        }
                         As a result, your assessment session has been shut down.
                     </p>
                     <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-8">
                         <p className="text-sm text-red-800 font-medium">
-                            Violation: Tab Switching / Loss of Focus
+                            Violation: {
+                                terminationReason === 'multiple_faces' ? 'Multiple People Detected' :
+                                    terminationReason === 'no_face' ? 'Face Not Detected' :
+                                        'Tab Switching / Loss of Focus'
+                            }
                         </p>
                         <p className="text-xs text-red-600 mt-1">
-                            Recorded {tabSwitchCount} times.
+                            Recorded {
+                                terminationReason === 'multiple_faces' ? multipleFacesCount :
+                                    terminationReason === 'no_face' ? noFaceCount :
+                                        tabSwitchCount
+                            } times.
                         </p>
                     </div>
                     <button
-                        onClick={() => navigate('/assessments')}
+                        onClick={() => {
+                            localStorage.removeItem(`assessment_session_${assessmentId}`);
+                            navigate('/assessments');
+                        }}
                         className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-transform hover:scale-[1.02]"
                     >
                         Return to Dashboard
@@ -520,7 +550,7 @@ function TakeAssessment() {
                     {/* Pre-flight Camera Check */}
                     <div className="flex flex-col items-center justify-center bg-gray-100 rounded-lg p-4">
                         <p className="text-sm font-semibold mb-2 text-gray-700">System Check</p>
-                        <ProctoringWebcam onStatusChange={setCameraStatus} />
+                        <ProctoringWebcam onStatusChange={handleCameraStatusChange} />
                         <div className={`mt-3 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${cameraStatus.status === 'ok'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
@@ -549,6 +579,8 @@ function TakeAssessment() {
                         onClick={() => {
                             enterFullScreen();
                             setAssessmentStarted(true);
+                            setNoFaceCount(0);
+                            setMultipleFacesCount(0);
                         }}
                         disabled={cameraStatus.status !== 'ok'}
                         className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all transform hover:scale-[1.02] disabled:hover:scale-100"
@@ -568,28 +600,50 @@ function TakeAssessment() {
 
     const currentQuestion = questions[currentQuestionIndex];
 
+    const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
     return (
-        <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 flex overflow-hidden z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 flex flex-col lg:flex-row overflow-hidden z-50">
             {/* Sidebar */}
-            <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
+            <div className={`w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300 ${showMobileSidebar ? 'h-auto max-h-[60vh]' : 'h-auto'
+                } lg:h-full lg:max-h-full`}>
+
                 {/* Webcam Feed - Top of Sidebar */}
-                <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col items-center">
-                    <ProctoringWebcam onStatusChange={setCameraStatus} />
+                <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col items-center relative">
+                    {/* Mobile Toggle Button */}
+                    <button
+                        onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+                        className="lg:hidden absolute top-2 right-2 p-2 text-gray-500 hover:bg-gray-200 rounded-lg"
+                    >
+                        <span className="material-symbols-outlined">{showMobileSidebar ? 'expand_less' : 'expand_more'}</span>
+                    </button>
+
+                    <ProctoringWebcam onStatusChange={handleCameraStatusChange} />
                     {cameraStatus.status !== 'ok' && (
                         <div className="mt-2 text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded flex items-center gap-1 animate-pulse">
                             <span className="material-symbols-outlined text-base">warning</span>
                             {cameraStatus.message}
                         </div>
                     )}
-                    {(tabSwitchCount > 0 || warnings.length > 0) && (
-                        <div className="mt-2 text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded w-full">
-                            <p><strong>Violations:</strong> {tabSwitchCount}</p>
-                            <p className="truncate">{warnings[warnings.length - 1]?.message}</p>
-                        </div>
-                    )}
+                    {/* Violation Counters - Always Visible */}
+                    <div className="mt-2 text-xs text-gray-700 bg-gray-100 px-3 py-2 rounded w-full space-y-1 border border-gray-200">
+                        <p className={`flex justify-between ${tabSwitchCount > 0 ? 'text-orange-600 font-bold' : ''}`}>
+                            <span>Tab Violations:</span>
+                            <span>{tabSwitchCount}</span>
+                        </p>
+                        <p className={`flex justify-between ${multipleFacesCount > 0 ? 'text-red-600 font-bold' : ''}`}>
+                            <span>Multiple Faces:</span>
+                            <span>{multipleFacesCount}</span>
+                        </p>
+                        <p className={`flex justify-between ${noFaceCount > 0 ? 'text-red-600 font-bold' : ''}`}>
+                            <span>No Face Detected:</span>
+                            <span>{noFaceCount}</span>
+                        </p>
+                    </div>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-1">
+                {/* Collapsible Content Area on Mobile */}
+                <div className={`overflow-y-auto flex-1 p-6 ${showMobileSidebar ? 'block' : 'hidden lg:block'}`}>
                     <h3 className="font-bold text-gray-900 mb-4">Assessment Progress</h3>
 
                     <div className="mb-6">
@@ -608,7 +662,10 @@ function TakeAssessment() {
                                 return (
                                     <button
                                         key={index}
-                                        onClick={() => setCurrentQuestionIndex(index)}
+                                        onClick={() => {
+                                            setCurrentQuestionIndex(index);
+                                            setShowMobileSidebar(false); // Auto-close on selection on mobile
+                                        }}
                                         className={`w-10 h-10 rounded-lg font-semibold text-sm transition-colors ${index === currentQuestionIndex
                                             ? 'bg-red-500 text-white'
                                             : status === 'answered'
@@ -626,7 +683,7 @@ function TakeAssessment() {
                     </div>
 
                     <button
-                        onClick={handleSubmit}
+                        onClick={() => handleSubmit(false)}
                         disabled={submitting}
                         className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
                     >
@@ -636,21 +693,21 @@ function TakeAssessment() {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                 {/* Header */}
-                <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+                <div className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex justify-between items-center shrink-0">
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900">{assessmentData?.name}</h1>
-                        <p className="text-sm text-gray-500">Question {currentQuestionIndex + 1} of {questions.length}</p>
+                        <h1 className="text-lg md:text-xl font-bold text-gray-900 truncate max-w-[200px] md:max-w-none">{assessmentData?.name}</h1>
+                        <p className="text-sm text-gray-500">Q {currentQuestionIndex + 1} / {questions.length}</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
-                        <span className="material-symbols-outlined text-gray-600">schedule</span>
-                        <span className="font-mono text-lg font-semibold text-gray-900">{formatTime(timeRemaining)}</span>
+                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 md:px-4 md:py-2 rounded-lg">
+                        <span className="material-symbols-outlined text-gray-600 text-lg md:text-xl">schedule</span>
+                        <span className="font-mono text-base md:text-lg font-semibold text-gray-900">{formatTime(timeRemaining)}</span>
                     </div>
                 </div>
 
                 {/* Question Content */}
-                <div className="flex-1 overflow-y-auto p-8">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8">
                     <div className="max-w-4xl mx-auto">
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                             <h2 className="text-lg font-semibold text-gray-900 mb-6">
@@ -694,7 +751,7 @@ function TakeAssessment() {
                 </div>
 
                 {/* Footer Navigation */}
-                <div className="bg-white border-t border-gray-200 px-8 py-4 flex justify-between items-center">
+                <div className="bg-white border-t border-gray-200 px-4 md:px-8 py-4 flex justify-between items-center bg-gray-50/50">
                     <button
                         onClick={handlePrevious}
                         disabled={currentQuestionIndex === 0}
@@ -712,7 +769,7 @@ function TakeAssessment() {
                             }`}
                     >
                         <span className="material-symbols-outlined">flag</span>
-                        <span>{markedForReview.has(currentQuestionIndex) ? 'Marked' : 'Mark for Review'}</span>
+                        <span className="hidden sm:inline">{markedForReview.has(currentQuestionIndex) ? 'Marked' : 'Mark for Review'}</span>
                     </button>
 
                     <button

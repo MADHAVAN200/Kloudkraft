@@ -29,14 +29,14 @@ function DatasetUpload() {
     setLoadingDatasets(true);
     setDatasetsError('');
     try {
-      // Use direct format like upload_dataset (no body wrapper)
+      // Use direct format (no body wrapper)
       const payload = {
         action: "list_datasets"
       };
 
       console.log('Fetching datasets with payload:', payload);
 
-      const response = await fetch('https://u5vjutu2euwnn2uhiertnt6fte0vrbht.lambda-url.eu-central-1.on.aws/', {
+      const response = await fetch('/assessment-mgmt-api/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -60,11 +60,15 @@ function DatasetUpload() {
 
       console.log('Datasets response:', data);
 
-      // Response comes directly, not wrapped in body
-      if (data && data.success) {
-        setDatasets(data.datasets || []);
+      // Parse response body
+      const responseBody = data;
+
+      console.log('Datasets response body:', responseBody);
+
+      if (responseBody && responseBody.success) {
+        setDatasets(responseBody.datasets || []);
       } else {
-        throw new Error(data?.message || 'Failed to fetch datasets');
+        throw new Error(responseBody?.message || 'Failed to fetch datasets');
       }
     } catch (error) {
       console.error('Error fetching datasets:', error);
@@ -104,7 +108,7 @@ function DatasetUpload() {
         finalFilename += '.csv';
       }
 
-      // Prepare the payload - send directly without body wrapper
+      // Prepare the payload - direct format
       const payload = {
         action: "upload_dataset",
         filename: finalFilename,
@@ -115,8 +119,8 @@ function DatasetUpload() {
       console.log('CSV content preview:', fileContent.substring(0, 200));
       console.log('Payload:', payload);
 
-      // Send to API
-      const response = await fetch('https://u5vjutu2euwnn2uhiertnt6fte0vrbht.lambda-url.eu-central-1.on.aws/', {
+      // Send to API via proxy
+      const response = await fetch('/assessment-mgmt-api/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,8 +143,11 @@ function DatasetUpload() {
         throw new Error(errorMessage);
       }
 
-      // Check for success in the direct response
-      if (result && result.success) {
+      // Parse response body
+      const resultBody = result;
+
+      // Check for success
+      if (resultBody && resultBody.success) {
         setUploadSuccess(true);
         setFileName('');
         setFile(null);
@@ -149,8 +156,13 @@ function DatasetUpload() {
         // Reset file input
         const fileInput = document.getElementById('file-upload');
         if (fileInput) fileInput.value = '';
+
+        // Refresh list if visible
+        if (showDatasets) {
+          fetchDatasets();
+        }
       } else {
-        throw new Error(result?.message || 'Upload failed');
+        throw new Error(resultBody?.message || 'Upload failed');
       }
 
     } catch (error) {
@@ -194,8 +206,8 @@ function DatasetUpload() {
             <button
               onClick={() => setShowDatasets(false)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${!showDatasets
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                 }`}
             >
               <span className="material-symbols-outlined text-base">upload_file</span>
@@ -204,8 +216,8 @@ function DatasetUpload() {
             <button
               onClick={() => setShowDatasets(true)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${showDatasets
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                 }`}
             >
               <span className="material-symbols-outlined text-base">visibility</span>

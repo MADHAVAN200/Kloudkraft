@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 function SQLPlayground() {
   const navigate = useNavigate();
@@ -120,12 +120,14 @@ function SQLPlayground() {
           <h3 className="text-xl font-bold text-gray-900 mb-2">Assessments</h3>
           <p className="text-gray-500 mb-6 text-sm">View all assessments and manage existing tests.</p>
           <button
-            onClick={() => navigate('/assessments-list?from=sql-playground')}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-5 rounded-lg transition-colors text-sm"
+            disabled
+            className="w-full bg-gray-50 text-gray-400 font-semibold py-2.5 px-5 rounded-lg cursor-not-allowed text-sm"
           >
             View All
           </button>
         </div>
+
+
       </div>
     </div>
   );
