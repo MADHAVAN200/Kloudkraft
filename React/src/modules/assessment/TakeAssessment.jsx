@@ -16,6 +16,7 @@ function TakeAssessment() {
     const [terminationReason, setTerminationReason] = useState(null); // 'tab_switch', 'multiple_faces', or 'no_face'
     const [multipleFacesCount, setMultipleFacesCount] = useState(0);
     const [noFaceCount, setNoFaceCount] = useState(0);
+    const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
     const {
         isFullScreen,
@@ -600,7 +601,7 @@ function TakeAssessment() {
 
     const currentQuestion = questions[currentQuestionIndex];
 
-    const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
 
     return (
         <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 flex flex-col lg:flex-row overflow-hidden z-50">
