@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import AWSCredentials from './components/AWSCredentials.jsx';
-import CredentialError from './components/CredentialError.jsx';
+import AWSCredentials from '../../components/AWSCredentials.jsx';
+import CredentialError from '../../components/CredentialError.jsx';
 
 function CloudConsole() {
   const navigate = useNavigate();
