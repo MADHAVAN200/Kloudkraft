@@ -54,7 +54,7 @@ function CreateAssessment() {
     setLoadingDatasets(true);
     setDatasetError('');
     try {
-      // Use new list_datasets API via proxy
+      // Use list_datasets API via proxy
       const payload = {
         action: "list_datasets"
       };
@@ -124,9 +124,13 @@ function CreateAssessment() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const [submitting, setSubmitting] = useState(false); // Add submitting state if not present
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // ... (previous useEffects)
+
   const handleCreateAssessment = async () => {
     // Construct payload strictly as requested
-    // Construct payload strictly as requested for create_assessment
     const assessmentData = {
       name: assessmentName,
       assigned_cohorts: [], // Empty array as per requirement
@@ -167,8 +171,8 @@ function CreateAssessment() {
       }
 
       if (responseBody && responseBody.success) {
-        alert(editId ? 'Assessment updated successfully!' : 'Assessment created successfully!');
-        navigate('/assessments');
+        // alert(editId ? 'Assessment updated successfully!' : 'Assessment created successfully!');
+        setShowSuccessModal(true);
       } else {
         alert(`Failed to ${editId ? 'update' : 'create'} assessment: ${responseBody?.message || 'Unknown error'}`);
       }
@@ -178,6 +182,30 @@ function CreateAssessment() {
       alert('An error occurred while creating the assessment.');
     }
   };
+
+  if (showSuccessModal) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl transform scale-100 animate-in zoom-in-95 duration-200 text-center">
+          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-2xl font-bold">check</span>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Success!</h2>
+          <p className="text-gray-500 mb-8">
+            Assessment has been {editId ? 'updated' : 'created'} successfully.
+          </p>
+          <button
+            onClick={() => navigate('/assessments')}
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+          >
+            Go to AssessmentsList
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const renderStepContent = () => {
     switch (currentStep) {

@@ -20,6 +20,7 @@ import AssessmentResults from './modules/Assessments/AssessmentResults.jsx';
 import Reports from './Reports.jsx';
 import AvailableDatasets from './modules/SQLPlayground/AvailableDatasets.jsx';
 import UsersAndCohorts from './modules/SQLPlayground/UsersAndCohorts.jsx';
+import CreateSQLAssessment from './modules/SQLPlayground/CreateSQLAssessment.jsx';
 
 function KloudkraftAdminContent() {
   return (
@@ -95,6 +96,14 @@ function KloudkraftAdminContent() {
                         element={
                           <ProtectedRoute allowedRoles={['admin', 'trainer']}>
                             <UsersAndCohorts />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/sql-playground/create-assessment"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'trainer']}>
+                            <CreateSQLAssessment />
                           </ProtectedRoute>
                         }
                       />

@@ -10,19 +10,39 @@ function Sidebar() {
     const isActive = (path) => {
         // Special case: highlight "SQL Playground" when on related pages
         if (path === '/sql-playground') {
-            const sqlPlaygroundPages = ['/dataset-upload', '/create-assessment', '/reports', '/assessments-list'];
+            const sqlPlaygroundPages = [
+                '/dataset-upload',
+                '/create-assessment',
+                '/reports',
+                '/assessments-list',
+                '/users-cohorts',
+                '/available-datasets',
+                '/sql-playground/create-assessment'
+            ];
             const params = new URLSearchParams(location.search);
             const from = params.get('from');
-            if (sqlPlaygroundPages.includes(location.pathname) && from === 'sql-playground') {
+
+            // Check if it's a direct sub-route or has the query param
+            if (location.pathname.startsWith('/sql-playground')) {
                 return true;
+            }
+            if (sqlPlaygroundPages.includes(location.pathname)) {
+                // For shared pages like reports, check the 'from' param if needed, or if it's strongly owned
+                if (location.pathname === '/users-cohorts' || location.pathname === '/available-datasets' || location.pathname === '/sql-playground/create-assessment') return true;
+                if (from === 'sql-playground') return true;
             }
         }
 
         // Special case: highlight "Assessments" when on related pages
         if (path === '/assessments') {
-            const assessmentsPages = ['/dataset-upload', '/create-assessment', '/reports', '/assessments-list'];
+            const assessmentsPages = ['/dataset-upload', '/create-assessment', '/reports', '/assessments-list', '/assessment/take/', '/assessment/results/'];
             const params = new URLSearchParams(location.search);
             const from = params.get('from');
+            // Check for nested assessment routes
+            if (location.pathname.startsWith('/assessments') || location.pathname.startsWith('/assessment/')) {
+                return true;
+            }
+
             if (assessmentsPages.includes(location.pathname) && from === 'assessments') {
                 return true;
             }

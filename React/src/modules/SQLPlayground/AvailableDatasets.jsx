@@ -10,27 +10,19 @@ function AvailableDatasets() {
     useEffect(() => {
         const fetchDatasets = async () => {
             try {
-                const payload = {
-                    action: "list_datasets"
-                };
-
-                const response = await fetch('/assessment-mgmt-api/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=databases');
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch datasets');
+                    throw new Error('Failed to fetch databases');
                 }
                 const data = await response.json();
 
-                const responseBody = data;
-
-                if (responseBody && responseBody.success) {
-                    setDatasets(responseBody.datasets || []);
+                if (data && data.databases) {
+                    setDatasets(data.databases || []);
                 } else {
-                    throw new Error('Failed to load datasets');
+                    // Fallback or empty if structure differs, but user says it returns databases
+                    setDatasets([]);
+                    if (!data.databases) console.warn('API response missing "databases" array:', data);
                 }
             } catch (err) {
                 console.error('Error fetching datasets:', err);
@@ -87,14 +79,14 @@ function AvailableDatasets() {
                             </div>
                         ) : datasets.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {datasets.map((dataset, index) => (
+                                {datasets.map((datasetName, index) => (
                                     <div key={index} className="flex items-center p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow hover:border-red-300 group">
                                         <div className="bg-red-50 p-3 rounded-lg mr-4 group-hover:bg-red-100 transition-colors">
-                                            <span className="material-symbols-outlined text-red-500">description</span>
+                                            <span className="material-symbols-outlined text-red-500">database</span>
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-900 text-sm truncate max-w-[200px]" title={dataset.filename}>{dataset.filename}</h3>
-                                            <p className="text-xs text-gray-500">{(dataset.size / 1024).toFixed(2)} KB</p>
+                                            <h3 className="font-semibold text-gray-900 text-sm truncate max-w-[200px]" title={datasetName}>{datasetName}</h3>
+                                            <p className="text-xs text-gray-500">SQL Database</p>
                                         </div>
                                     </div>
                                 ))}
