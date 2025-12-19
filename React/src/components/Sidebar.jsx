@@ -54,6 +54,7 @@ function Sidebar() {
     // All users can see these
     const baseNavItems = [
         { path: '/dashboard', label: 'Dashboard', icon: 'grid_view' },
+        { path: '/content-uploading', label: 'Content Uploading', icon: 'folder_shared' },
         { path: '/virtual-machine', label: 'Virtual Machine', icon: 'computer' },
         { path: '/cloud-console', label: 'Cloud Console', icon: 'vpn_key' },
         { path: '/cloud-labs', label: 'Cloud Labs', icon: 'cloud' },

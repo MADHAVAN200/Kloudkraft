@@ -105,7 +105,7 @@ function CreateAssessment() {
       case 2:
         return selectedDataset !== '';
       case 3:
-      case 3:
+
         return parseInt(duration) > 0;
       case 4:
         return questionCount > 0;

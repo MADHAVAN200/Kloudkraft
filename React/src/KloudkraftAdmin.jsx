@@ -21,6 +21,7 @@ import Reports from './Reports.jsx';
 import AvailableDatasets from './modules/SQLPlayground/AvailableDatasets.jsx';
 import UsersAndCohorts from './modules/SQLPlayground/UsersAndCohorts.jsx';
 import CreateSQLAssessment from './modules/SQLPlayground/CreateSQLAssessment.jsx';
+import Content from './modules/ContentUploading/Content.jsx';
 
 function KloudkraftAdminContent() {
   return (
@@ -59,6 +60,7 @@ function KloudkraftAdminContent() {
                     <Routes>
                       {/* Routes accessible to all authenticated users */}
                       <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/content-uploading" element={<Content />} />
                       <Route path="/virtual-machine" element={<VirtualMachine />} />
                       <Route path="/cloud-console" element={<CloudConsole />} />
                       <Route path="/cloud-labs" element={<CloudLabs />} />
