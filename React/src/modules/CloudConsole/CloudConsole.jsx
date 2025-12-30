@@ -13,8 +13,8 @@ function CloudConsole() {
       id: 1,
       name: 'AWS Credentials',
       icon: '☁️',
-      color: 'bg-orange-50',
-      textColor: 'text-orange-600',
+      color: 'bg-orange-50 dark:bg-orange-900/20',
+      textColor: 'text-orange-600 dark:text-orange-400',
       type: 'aws',
       displayName: 'AWS',
     },
@@ -22,8 +22,8 @@ function CloudConsole() {
       id: 2,
       name: 'AZURE Credentials',
       icon: '🔷',
-      color: 'bg-blue-50',
-      textColor: 'text-blue-600',
+      color: 'bg-blue-50 dark:bg-blue-900/20',
+      textColor: 'text-blue-600 dark:text-blue-400',
       type: 'azure',
       displayName: 'AZURE',
     },
@@ -31,8 +31,8 @@ function CloudConsole() {
       id: 3,
       name: 'GCP Credentials',
       icon: '☁️',
-      color: 'bg-red-50',
-      textColor: 'text-red-600',
+      color: 'bg-red-50 dark:bg-red-900/20',
+      textColor: 'text-red-600 dark:text-red-400',
       type: 'gcp',
       displayName: 'GCP',
     },
@@ -40,8 +40,8 @@ function CloudConsole() {
       id: 4,
       name: 'MS365 Credentials',
       icon: '📧',
-      color: 'bg-purple-50',
-      textColor: 'text-purple-600',
+      color: 'bg-purple-50 dark:bg-purple-900/20',
+      textColor: 'text-purple-600 dark:text-purple-400',
       type: 'ms365',
       displayName: 'MS365',
     },
@@ -49,8 +49,8 @@ function CloudConsole() {
       id: 5,
       name: 'GITCOPILOT Credentials',
       icon: '🤖',
-      color: 'bg-indigo-50',
-      textColor: 'text-indigo-600',
+      color: 'bg-indigo-50 dark:bg-indigo-900/20',
+      textColor: 'text-indigo-600 dark:text-indigo-400',
       type: 'gitcopilot',
       displayName: 'GITCOPILOT',
     },
@@ -77,19 +77,19 @@ function CloudConsole() {
 
   // Show main credentials grid
   return (
-    <div className="max-w-6xl mt-2 ml-2">
+    <div className="w-full mt-2 ml-2 transition-colors duration-300">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Cloud Console Credentials</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cloud Console Credentials</h1>
       </div>
 
       {/* Credentials Grid */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {credentials.map((credential) => (
           <button
             key={credential.id}
             onClick={() => handleCredentialClick(credential.type)}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center hover:shadow-md transition-all hover:scale-105 cursor-pointer"
+            className="bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center hover:shadow-md transition-all hover:scale-105 cursor-pointer"
           >
             <div className={`${credential.color} rounded-2xl p-4 inline-block mb-4`}>
               <span className="text-4xl">{credential.icon}</span>

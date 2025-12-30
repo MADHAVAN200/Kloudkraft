@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 function CreateAssessment() {
   const navigate = useNavigate();
@@ -212,11 +213,11 @@ function CreateAssessment() {
       case 1:
         return (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Assessment Details</h2>
-            <p className="text-gray-600 mb-6">Enter assessment name</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Assessment Details</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Enter assessment name</p>
 
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Assessment Name
               </label>
               <input
@@ -224,7 +225,7 @@ function CreateAssessment() {
                 placeholder="e.g., Python Basics Assessment"
                 value={assessmentName}
                 onChange={(e) => setAssessmentName(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
           </div>
@@ -233,11 +234,11 @@ function CreateAssessment() {
       case 2:
         return (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Select Dataset</h2>
-            <p className="text-gray-600 mb-6">Choose the dataset (question set) for this assessment</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Select Dataset</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Choose the dataset (question set) for this assessment</p>
 
             {datasetError && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-lg text-red-700 dark:text-red-300">
                 {datasetError}
               </div>
             )}
@@ -245,18 +246,18 @@ function CreateAssessment() {
             {loadingDatasets ? (
               <div className="text-center py-8">
                 <span className="material-symbols-outlined animate-spin text-4xl text-red-500">progress_activity</span>
-                <p className="mt-2 text-gray-600">Loading datasets...</p>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">Loading datasets...</p>
               </div>
             ) : (
               <>
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Available Datasets
                   </label>
                   <select
                     value={selectedDataset}
                     onChange={(e) => setSelectedDataset(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <option value="">Select a dataset...</option>
                     {datasets.map((ds) => (
@@ -268,11 +269,11 @@ function CreateAssessment() {
                 </div>
 
                 {selectedDataset && (
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/30 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <span className="material-symbols-outlined text-blue-600">description</span>
+                      <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">description</span>
                       <div>
-                        <p className="text-blue-900 font-semibold text-sm">Selected Dataset Key: {selectedDataset}</p>
+                        <p className="text-blue-900 dark:text-blue-200 font-semibold text-sm">Selected Dataset Key: {selectedDataset}</p>
                       </div>
                     </div>
                   </div>
@@ -285,11 +286,11 @@ function CreateAssessment() {
       case 3:
         return (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Set Duration</h2>
-            <p className="text-gray-600 mb-6">Set the time limit for the assessment in minutes</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Set Duration</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Set the time limit for the assessment in minutes</p>
 
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Duration (minutes)
               </label>
               <input
@@ -297,9 +298,9 @@ function CreateAssessment() {
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
                 min="1"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               />
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 For example 60 for 1 hour, 30 for 30 minutes.
               </p>
             </div>
@@ -309,11 +310,11 @@ function CreateAssessment() {
       case 4:
         return (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Set Question Count</h2>
-            <p className="text-gray-600 mb-6">Configure how many questions each user will receive</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Set Question Count</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Configure how many questions each user will receive</p>
 
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Number of Questions per User
               </label>
               <input
@@ -322,9 +323,9 @@ function CreateAssessment() {
                 onChange={(e) => setQuestionCount(e.target.value)}
                 min="1"
                 max={totalQuestions}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               />
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 Note: Ensure the database has enough questions. (Default assumption: 100+)
               </p>
             </div>
@@ -335,19 +336,19 @@ function CreateAssessment() {
                 type="checkbox"
                 checked={randomQuestions}
                 onChange={(e) => setRandomQuestions(e.target.checked)}
-                className="w-5 h-5 text-red-500 focus:ring-red-500 border-gray-300 rounded"
+                className="w-5 h-5 text-red-500 focus:ring-red-500 border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded"
               />
-              <label htmlFor="random_questions" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="random_questions" className="ml-2 block text-sm text-gray-900 dark:text-gray-200">
                 Randomize Questions
               </label>
             </div>
 
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30 rounded-lg">
               <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-yellow-600">shuffle</span>
+                <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400">shuffle</span>
                 <div>
-                  <p className="text-yellow-900 font-semibold text-sm">Randomization</p>
-                  <p className="text-yellow-800 text-sm mt-1">
+                  <p className="text-yellow-900 dark:text-yellow-200 font-semibold text-sm">Randomization</p>
+                  <p className="text-yellow-800 dark:text-yellow-300 text-sm mt-1">
                     {randomQuestions
                       ? `Each user will receive ${questionCount} randomly selected questions from the database.`
                       : "Questions will be presented in sequential order."}
@@ -361,13 +362,13 @@ function CreateAssessment() {
       case 5:
         return (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Review & Create Assessment</h2>
-            <p className="text-gray-600 mb-6">Review all details before creating the assessment</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Review & Create Assessment</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Review all details before creating the assessment</p>
 
             <div className="space-y-4">
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Assessment Details</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Assessment Details</h3>
                   <button
                     onClick={() => setCurrentStep(1)}
                     className="text-red-500 hover:text-red-600 text-sm font-semibold"
@@ -375,16 +376,16 @@ function CreateAssessment() {
                     Edit
                   </button>
                 </div>
-                <p className="text-gray-600 font-medium">{assessmentName}</p>
+                <p className="text-gray-600 dark:text-gray-300 font-medium">{assessmentName}</p>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-500 mb-1">Target Audience:</p>
-                  <p className="text-sm font-medium text-gray-900">Open to all (Link sharing)</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Target Audience:</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-200">Open to all (Link sharing)</p>
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Dataset</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Dataset</h3>
                   <button
                     onClick={() => setCurrentStep(2)}
                     className="text-red-500 hover:text-red-600 text-sm font-semibold"
@@ -392,14 +393,14 @@ function CreateAssessment() {
                     Edit
                   </button>
                 </div>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {datasets.find(d => d.s3_key === selectedDataset)?.filename || selectedDataset}
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Duration</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Duration</h3>
                   <button
                     onClick={() => setCurrentStep(3)}
                     className="text-red-500 hover:text-red-600 text-sm font-semibold"
@@ -407,14 +408,14 @@ function CreateAssessment() {
                     Edit
                   </button>
                 </div>
-                <div className="space-y-1 text-gray-600">
+                <div className="space-y-1 text-gray-600 dark:text-gray-300">
                   <p>{duration} Minutes</p>
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Questions</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Questions</h3>
                   <button
                     onClick={() => setCurrentStep(4)}
                     className="text-red-500 hover:text-red-600 text-sm font-semibold"
@@ -422,7 +423,7 @@ function CreateAssessment() {
                     Edit
                   </button>
                 </div>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {questionCount} randomized questions per user
                 </p>
               </div>
@@ -443,89 +444,66 @@ function CreateAssessment() {
     }
   };
 
+  const breadcrumbItems = [
+    { label: 'Assessments', path: '/assessments' },
+    { label: editId ? 'Edit Assessment' : 'Create Assessment' }
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto mt-6 px-4">
-      {/* Back Button */}
-      {referrer && (
-        <button
-          onClick={() => navigate(referrer === 'sql-playground' ? '/sql-playground' : '/assessments')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-          <span className="font-medium">Back</span>
-        </button>
-      )}
+    <div className="w-full mt-6 px-4 md:px-8 transition-colors duration-300">
+      <Breadcrumbs items={breadcrumbItems} />
 
       {/* Progress Indicator */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
-          {[
-            { num: 1, label: 'Details' },
-            { num: 2, label: 'Dataset' },
-            { num: 3, label: 'Duration' },
-            { num: 4, label: 'Questions' },
-            { num: 5, label: 'Review' },
-          ].map((step, index) => (
-            <React.Fragment key={step.num}>
-              <div className="flex flex-col items-center">
-                <div
-                  className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center font-bold text-sm md:text-lg transition-all ${step.num <= currentStep
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                    }`}
-                >
-                  {step.num}
-                </div>
-                <span className="hidden sm:block text-xs md:text-sm text-gray-600 mt-2">{step.label}</span>
-              </div>
-              {index < 4 && (
-                <div className="flex-1 h-0.5 md:h-1 mx-2 md:mx-4 mb-0 sm:mb-6 self-center">
-                  <div
-                    className={`h-full transition-all duration-300 ${step.num < currentStep ? 'bg-red-500' : 'bg-gray-200'
-                      }`}
-                  />
-                </div>
-              )
-              }
-            </React.Fragment>
+        <div className="flex items-center justify-between relative">
+          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 dark:bg-gray-700 z-0"></div>
+          <div
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-red-500 z-0 transition-all duration-300"
+            style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
+          ></div>
+          {[1, 2, 3, 4, 5].map((step) => (
+            <div
+              key={step}
+              className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-300 ${step <= currentStep ? 'bg-red-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                }`}
+            >
+              {step}
+            </div>
           ))}
         </div>
       </div>
 
       {/* Step Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-6">
+      <div className="bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-6">
         {renderStepContent()}
       </div>
 
       {/* Navigation Buttons */}
-      {
-        currentStep < 5 && (
-          <div className="flex justify-between">
-            <button
-              onClick={prevStep}
-              disabled={currentStep === 1}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-colors ${currentStep === 1
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <span className="material-symbols-outlined">arrow_back</span>
-              <span>Previous</span>
-            </button>
+      <div className="flex justify-between">
+        <button
+          onClick={prevStep}
+          disabled={currentStep === 1}
+          className={`px-6 py-2 rounded-lg font-medium transition-colors ${currentStep === 1
+            ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+            : 'bg-white dark:bg-brand-card border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+        >
+          Previous
+        </button>
 
-            <button
-              onClick={nextStep}
-              disabled={!validateStep()}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-colors ${!validateStep()
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-red-500 text-white hover:bg-red-600'
-                }`}
-            >
-              <span>Next</span>
-              <span className="material-symbols-outlined">arrow_forward</span>
-            </button>
-          </div>
+        {currentStep < totalSteps && (
+          <button
+            onClick={nextStep}
+            disabled={!validateStep()}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${!validateStep()
+              ? 'bg-red-300 dark:bg-red-900/50 text-white cursor-not-allowed'
+              : 'bg-red-500 text-white hover:bg-red-600'
+              }`}
+          >
+            Next
+          </button>
         )}
+      </div>
     </div>
   );
 }

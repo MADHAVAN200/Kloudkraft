@@ -40,25 +40,25 @@ const Login = () => {
     };
 
     return (
-        <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F9FA]">
-            <div className="w-full max-w-[400px] bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F9FA] dark:bg-brand-dark transition-colors duration-300">
+            <div className="w-full max-w-[400px] bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-300">
                 <div className="space-y-1 pb-6">
-                    <h1 className="text-center text-2xl font-bold tracking-tight text-[#1A1A1A]">
+                    <h1 className="text-center text-2xl font-bold tracking-tight text-[#1A1A1A] dark:text-white">
                         Sign In
                     </h1>
-                    <p className="text-center text-sm text-gray-600">Kloudkraft Admin Portal</p>
+                    <p className="text-center text-sm text-gray-600 dark:text-gray-400">Kloudkraft Admin Portal</p>
                 </div>
 
                 <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2">
-                        <label htmlFor="username" className="block text-sm font-semibold text-[#1A1A1A]">
+                        <label htmlFor="username" className="block text-sm font-semibold text-[#1A1A1A] dark:text-gray-200">
                             Username
                         </label>
                         <input
                             id="username"
                             placeholder="Enter your username"
                             type="text"
-                            className="w-full px-4 py-3 bg-[#F1F3F5] border-none rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full px-4 py-3 bg-[#F1F3F5] dark:bg-gray-800 border-none rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
@@ -66,7 +66,7 @@ const Login = () => {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="password" className="block text-sm font-semibold text-[#1A1A1A]">
+                        <label htmlFor="password" className="block text-sm font-semibold text-[#1A1A1A] dark:text-gray-200">
                             Password
                         </label>
                         <div className="relative">
@@ -74,7 +74,7 @@ const Login = () => {
                                 id="password"
                                 placeholder="Enter your password"
                                 type={showPassword ? 'text' : 'password'}
-                                className="w-full px-4 py-3 bg-[#F1F3F5] border-none rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-red-500 pr-12"
+                                className="w-full px-4 py-3 bg-[#F1F3F5] dark:bg-gray-800 border-none rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-red-500 pr-12 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -82,7 +82,7 @@ const Login = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                             >
                                 {showPassword ? (
                                     <EyeOff className="h-5 w-5" />
@@ -94,7 +94,7 @@ const Login = () => {
                     </div>
 
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
                             {error}
                         </div>
                     )}
@@ -109,10 +109,10 @@ const Login = () => {
                 </form>
 
                 <div className="flex items-center justify-between mt-4 text-sm font-medium">
-                    <a href="#" className="text-[#D92D20] hover:underline">
+                    <a href="#" className="text-[#D92D20] hover:underline dark:text-red-400">
                         Forgot Password?
                     </a>
-                    <a href="#" className="text-[#D92D20] hover:underline">
+                    <a href="#" className="text-[#D92D20] hover:underline dark:text-red-400">
                         Contact Admin
                     </a>
                 </div>

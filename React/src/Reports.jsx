@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import Breadcrumbs from './components/Breadcrumbs';
 
 function Reports() {
     const navigate = useNavigate();
@@ -8,6 +9,12 @@ function Reports() {
 
     // Get the referrer from URL params
     const referrer = searchParams.get('from');
+
+    const breadcrumbItems = [
+        ...(referrer === 'sql-playground' ? [{ label: 'SQL Playground', path: '/sql-playground' }] : []),
+        ...(referrer === 'assessments' ? [{ label: 'Assessments', path: '/assessments' }] : []),
+        { label: 'Student Reports' }
+    ];
 
     const students = [
         {
@@ -53,24 +60,15 @@ function Reports() {
     );
 
     return (
-        <div className="max-w-7xl mt-2 ml-2">
-            {/* Back Button */}
-            {referrer && (
-                <button
-                    onClick={() => navigate(referrer === 'sql-playground' ? '/sql-playground' : '/assessments')}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-                >
-                    <span className="material-symbols-outlined">arrow_back</span>
-                    <span className="font-medium">Back</span>
-                </button>
-            )}
+        <div className="w-full mt-2 ml-2 transition-colors duration-300">
+            <Breadcrumbs items={breadcrumbItems} />
 
             {/* Header */}
             <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Student Reports</h1>
-                        <p className="text-gray-600 text-sm mt-1">View and manage student information and reports.</p>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Student Reports</h1>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">View and manage student information and reports.</p>
                     </div>
                     <button className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors">
                         <span className="material-symbols-outlined text-base">download</span>
@@ -90,51 +88,51 @@ function Reports() {
                         placeholder="Search students..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
                 </div>
             </div>
 
             {/* Students Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <table className="min-w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                 Student Name
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                 Email
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                 Last Assessment
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                 Overall Score
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                         {filteredStudents.length > 0 ? (
                             filteredStudents.map((student) => (
-                                <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                                <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                                         {student.name}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                                         {student.email}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                                         {student.lastAssessment}
                                     </td>
-                                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                                    <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
                                         {student.overallScore}
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan="4" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                                     No students found matching your search.
                                 </td>
                             </tr>

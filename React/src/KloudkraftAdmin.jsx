@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './amplify-config';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Login from './Login.jsx';
 import Header from './components/Header.jsx';
@@ -25,7 +26,7 @@ import Content from './modules/ContentUploading/Content.jsx';
 
 function KloudkraftAdminContent() {
   return (
-    <div className="font-display bg-background-light text-gray-800 antialiased min-h-screen flex flex-col overflow-hidden">
+    <div className="font-display bg-background-light dark:bg-brand-dark text-gray-800 dark:text-gray-100 antialiased min-h-screen flex flex-col overflow-hidden transition-colors duration-300">
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -56,7 +57,7 @@ function KloudkraftAdminContent() {
                 <Header />
                 <div className="flex flex-1 overflow-hidden">
                   <Sidebar />
-                  <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-8 scrollbar-hide">
+                  <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-brand-dark p-4 sm:p-8 scrollbar-hide transition-colors duration-300">
                     <Routes>
                       {/* Routes accessible to all authenticated users */}
                       <Route path="/dashboard" element={<Dashboard />} />
@@ -131,7 +132,9 @@ function KloudkraftAdmin() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <KloudkraftAdminContent />
+        <ThemeProvider>
+          <KloudkraftAdminContent />
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   );

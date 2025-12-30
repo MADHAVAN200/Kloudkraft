@@ -80,21 +80,18 @@ function Sidebar() {
         navItems = [...navItems, ...candidateItems];
     }
 
-    const handleLogout = async () => {
-        await signOut();
-        navigate('/login');
-    };
+
 
     return (
-        <aside className="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 z-10 hidden lg:flex">
+        <aside className="w-64 bg-white dark:bg-brand-card border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0 z-10 hidden lg:flex transition-colors duration-300">
             <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto scrollbar-hide">
                 {navItems.map((item) => (
                     <button
                         key={item.path}
                         onClick={() => navigate(item.path)}
                         className={`w-full flex items-center gap-2.5 px-5 py-2.5 text-left border-r-4 transition-all ${isActive(item.path)
-                            ? 'bg-red-50 text-red-500 border-red-500'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-transparent'
+                            ? 'bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 border-red-500 dark:border-red-400'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200 border-transparent'
                             }`}
                     >
                         <span className="material-symbols-outlined text-base">{item.icon}</span>
@@ -103,15 +100,7 @@ function Sidebar() {
                 ))}
             </nav>
 
-            <div className="p-3 border-t border-gray-200 flex-shrink-0">
-                <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2.5 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full text-sm"
-                >
-                    <span className="material-symbols-outlined text-base">logout</span>
-                    <span className="font-medium">Logout</span>
-                </button>
-            </div>
+
         </aside>
     );
 }

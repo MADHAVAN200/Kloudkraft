@@ -17,6 +17,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/assessment-mgmt-api/, ''),
         secure: false
+      },
+      '/sql-admin-api': {
+        target: 'https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sql-admin-api/, ''),
+        secure: false
       }
     }
   }

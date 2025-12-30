@@ -18,6 +18,21 @@
 
   <!-- Tailwind CDN (so all className utilities work) -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#101828', // User specified background
+              card: '#1E2939', // User specified card color
+            }
+          }
+        }
+      }
+    }
+  </script>
 </head>
 
   <body>

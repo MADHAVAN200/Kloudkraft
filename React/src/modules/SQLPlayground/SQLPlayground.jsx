@@ -33,101 +33,96 @@ function SQLPlayground() {
     }
   }, [isAdminOrTrainer]);
 
+  const PlaygroundCard = ({ title, description, icon, onClick, disabled, colorClass, iconColorClass }) => (
+    <div
+      onClick={!disabled ? onClick : undefined}
+      className={`relative group bg-white dark:bg-brand-card rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between transition-all duration-300 ${!disabled ? 'hover:shadow-lg hover:-translate-y-1 cursor-pointer' : 'opacity-70 cursor-not-allowed'}`}
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 dark:bg-gray-800 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-50 transition-opacity"></div>
+
+      <div>
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 duration-300 ${colorClass}`}>
+          <span className={`material-symbols-outlined text-3xl ${iconColorClass}`}>{icon}</span>
+        </div>
+
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{title}</h3>
+        <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{description}</p>
+      </div>
+
+      <div className="mt-8 flex items-center justify-between">
+        <span className={`text-sm font-semibold ${disabled ? 'text-gray-400 dark:text-gray-600' : 'text-red-600 dark:text-red-400 group-hover:translate-x-1 transition-transform'}`}>
+          {disabled ? 'Coming Soon' : 'Access Tool'}
+        </span>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${disabled ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white'}`}>
+          <span className="material-symbols-outlined text-sm">arrow_forward</span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="max-w-6xl mt-2 ml-2">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="w-full mt-2 ml-2 p-4 md:p-6 transition-colors duration-300">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">SQL Playground</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-2 text-lg">Manage datasets, build assessments, and analyze performance.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Available Datasets Card - Admin & Trainer only */}
         {isAdminOrTrainer && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center hover:shadow-md transition-shadow h-72 flex flex-col">
-            <div className="flex justify-center mb-5">
-              <div className="bg-red-50 rounded-2xl p-4 inline-block">
-                <span className="material-symbols-outlined text-red-500 text-4xl">database</span>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Dataset Upload</h3>
-            <p className="text-gray-500 mb-6 text-sm min-h-[40px] flex items-center justify-center">Import relevant datasets for assessments.</p>
-            <button
-              onClick={() => navigate('/available-datasets')}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-5 rounded-lg transition-colors text-sm mt-auto"
-            >
-              Import
-            </button>
-          </div>
+          <PlaygroundCard
+            title="Dataset Upload"
+            description="Import and manage relevant datasets for your SQL assessments."
+            icon="database"
+            onClick={() => navigate('/available-datasets')}
+            colorClass="bg-blue-50 dark:bg-blue-900/20"
+            iconColorClass="text-blue-600 dark:text-blue-400"
+          />
         )}
 
         {/* Assessment Creation Card - Admin & Trainer only */}
         {isAdminOrTrainer && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center hover:shadow-md transition-shadow h-72 flex flex-col">
-            <div className="flex justify-center mb-5">
-              <div className="bg-red-50 rounded-2xl p-4 inline-block">
-                <span className="material-symbols-outlined text-red-500 text-4xl">description</span>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Assessment Creation</h3>
-            <p className="text-gray-500 mb-6 text-sm min-h-[40px] flex items-center justify-center">Build and configure new assessments for users.</p>
-            <button
-              onClick={() => navigate('/sql-playground/create-assessment')}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-5 rounded-lg transition-colors text-sm mt-auto"
-            >
-              Start Builder
-            </button>
-          </div>
+          <PlaygroundCard
+            title="Assessment Creation"
+            description="Build, configure, and publish new SQL assessments for users."
+            icon="description"
+            onClick={() => navigate('/sql-playground/create-assessment')}
+            colorClass="bg-purple-50 dark:bg-purple-900/20"
+            iconColorClass="text-purple-600 dark:text-purple-400"
+          />
         )}
 
         {/* Users & Cohorts Card - Admin & Trainer only */}
         {isAdminOrTrainer && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center hover:shadow-md transition-shadow h-72 flex flex-col">
-            <div className="flex justify-center mb-5">
-              <div className="bg-red-50 rounded-2xl p-4 inline-block">
-                <span className="material-symbols-outlined text-red-500 text-4xl">groups</span>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Users & Cohorts</h3>
-            <p className="text-gray-500 mb-6 text-sm min-h-[40px] flex items-center justify-center">View details of all registered users and cohorts.</p>
-            <button
-              onClick={() => navigate('/users-cohorts')}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-5 rounded-lg transition-colors text-sm mt-auto"
-            >
-              View
-            </button>
-          </div>
+          <PlaygroundCard
+            title="Users & Cohorts"
+            description="View registered users, manage cohorts, and track engagement."
+            icon="groups"
+            onClick={() => navigate('/users-cohorts')}
+            colorClass="bg-orange-50 dark:bg-orange-900/20"
+            iconColorClass="text-orange-600 dark:text-orange-400"
+          />
         )}
 
         {/* Reports Card - All users */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center hover:shadow-md transition-shadow h-72 flex flex-col">
-          <div className="flex justify-center mb-5">
-            <div className="bg-red-50 rounded-2xl p-4 inline-block">
-              <span className="material-symbols-outlined text-red-500 text-4xl">analytics</span>
-            </div>
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Reports</h3>
-          <p className="text-gray-500 mb-6 text-sm min-h-[40px] flex items-center justify-center">View and analyse assessment results and user performance.</p>
-          <button
-            onClick={() => navigate('/reports?from=sql-playground')}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-5 rounded-lg transition-colors text-sm mt-auto"
-          >
-            View
-          </button>
-        </div>
+        <PlaygroundCard
+          title="Reports"
+          description="View detailed analytics on assessment results and performance."
+          icon="analytics"
+          onClick={() => navigate('/reports?from=sql-playground')}
+          colorClass="bg-green-50 dark:bg-green-900/20"
+          iconColorClass="text-green-600 dark:text-green-400"
+        />
 
         {/* Assessments Card - All users */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center hover:shadow-md transition-shadow h-72 flex flex-col">
-          <div className="flex justify-center mb-5">
-            <div className="bg-red-50 rounded-2xl p-4 inline-block">
-              <span className="material-symbols-outlined text-red-500 text-4xl">assignment</span>
-            </div>
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Assessments</h3>
-          <p className="text-gray-500 mb-6 text-sm min-h-[40px] flex items-center justify-center">View all assessments and manage existing tests.</p>
-          <button
-            disabled
-            className="w-full bg-gray-50 text-gray-400 font-semibold py-2.5 px-5 rounded-lg cursor-not-allowed text-sm mt-auto"
-          >
-            View All
-          </button>
-        </div>
-
-
+        <PlaygroundCard
+          title="Assessments"
+          description="Browse all assessments and manage existing test sets."
+          icon="assignment"
+          disabled={true}
+          colorClass="bg-gray-100 dark:bg-gray-800"
+          iconColorClass="text-gray-500 dark:text-gray-400"
+        />
       </div>
     </div>
   );

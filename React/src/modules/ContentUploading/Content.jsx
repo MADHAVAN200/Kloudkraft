@@ -55,12 +55,12 @@ function Content() {
     };
 
     return (
-        <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+        <div className="w-full p-4 md:p-6 space-y-6 transition-colors duration-300">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-brand-card p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Content Uploading</h1>
-                    <p className="text-gray-500 mt-1">Manage and view course materials and resources</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Content Uploading</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage and view course materials and resources</p>
                 </div>
 
                 {isAuthorized && (
@@ -77,32 +77,32 @@ function Content() {
             {/* Content Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {contentList.map((item) => (
-                    <div key={item.id} className="group bg-white rounded-xl border border-gray-200 hover:border-red-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                    <div key={item.id} className="group bg-white dark:bg-brand-card rounded-xl border border-gray-200 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-500/50 hover:shadow-md transition-all duration-200 overflow-hidden">
                         <div className="p-6">
                             <div className="flex items-start justify-between mb-4">
-                                <div className={`p-3 rounded-lg ${item.type === 'file' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                                <div className={`p-3 rounded-lg ${item.type === 'file' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
                                     }`}>
                                     <span className="material-symbols-outlined text-2xl">
                                         {item.type === 'file' ? 'description' : 'link'}
                                     </span>
                                 </div>
                                 {isAuthorized && (
-                                    <button className="text-gray-400 hover:text-red-500 transition-colors">
+                                    <button className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors">
                                         <span className="material-symbols-outlined">more_vert</span>
                                     </button>
                                 )}
                             </div>
 
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-red-600 transition-colors">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
                                 {item.title}
                             </h3>
 
                             <div className="space-y-2 mb-4">
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                     <span className="material-symbols-outlined text-base">calendar_today</span>
                                     <span>{item.date}</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                     <span className="material-symbols-outlined text-base">person</span>
                                     <span>{item.author}</span>
                                 </div>
@@ -110,7 +110,7 @@ function Content() {
 
                             <a
                                 href={item.url}
-                                className="inline-flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 hover:underline"
+                                className="inline-flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:underline"
                             >
                                 {item.type === 'file' ? 'Download File' : 'Visit Link'}
                             </a>
@@ -122,12 +122,12 @@ function Content() {
             {/* Upload Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-4 md:p-6 animate-in fade-in zoom-in duration-200">
+                    <div className="bg-white dark:bg-brand-card rounded-xl shadow-xl w-full max-w-md p-4 md:p-6 animate-in fade-in zoom-in duration-200 border border-gray-100 dark:border-gray-700">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-gray-900">Add New Content</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Content</h2>
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-500"
+                                className="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-300"
                             >
                                 <span className="material-symbols-outlined">close</span>
                             </button>
@@ -135,25 +135,25 @@ function Content() {
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
                                 <input
                                     type="text"
                                     name="title"
                                     value={newContent.title}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                                     placeholder="Enter content title"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
                                 <select
                                     name="type"
                                     value={newContent.type}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                                 >
                                     <option value="file">File Upload</option>
                                     <option value="link">External Link</option>
@@ -161,7 +161,7 @@ function Content() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     {newContent.type === 'file' ? 'File URL' : 'Link URL'}
                                 </label>
                                 <input
@@ -169,17 +169,17 @@ function Content() {
                                     name="url"
                                     value={newContent.url}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                                     placeholder="https://..."
                                     required
                                 />
                             </div>
 
-                            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+                            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors"
                                 >
                                     Cancel
                                 </button>
