@@ -18,9 +18,23 @@ function AssessmentsList({ onBack }) {
         fetchAssessments();
     }, []);
 
-    const fetchAssessments = async () => {
+    const fetchAssessments = async (forceRefresh = false) => {
         setLoading(true);
         setError(null);
+
+        if (!forceRefresh) {
+            const cached = sessionStorage.getItem('cached_assessments');
+            if (cached) {
+                try {
+                    setAssessments(JSON.parse(cached));
+                    setLoading(false);
+                    return;
+                } catch (e) {
+                    sessionStorage.removeItem('cached_assessments');
+                }
+            }
+        }
+
         try {
             // Use direct format (no body wrapper)
             const payload = {
@@ -45,7 +59,9 @@ function AssessmentsList({ onBack }) {
             const responseBody = data;
 
             if (responseBody && responseBody.success) {
-                setAssessments(responseBody.assessments || []);
+                const fetchedAssessments = responseBody.assessments || [];
+                setAssessments(fetchedAssessments);
+                sessionStorage.setItem('cached_assessments', JSON.stringify(fetchedAssessments));
             } else {
                 throw new Error(responseBody?.message || 'Failed to fetch assessments');
             }
@@ -77,7 +93,7 @@ function AssessmentsList({ onBack }) {
             if (response.ok) {
                 alert('Assessment deleted successfully');
                 setDeleteConfirm(null);
-                fetchAssessments(); // Refresh the list
+                fetchAssessments(true); // Refresh the list forcefully
             } else {
                 alert('Failed to delete assessment');
             }
@@ -120,15 +136,25 @@ function AssessmentsList({ onBack }) {
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Assessments</h2>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Manage and monitor assessments</p>
                 </div>
-                {isAdminOrTrainer && (
+                <div className="flex gap-3">
                     <button
-                        onClick={() => navigate('/create-assessment')}
-                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-red-100 dark:shadow-none"
+                        onClick={() => fetchAssessments(true)}
+                        className="flex items-center gap-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 transition-all font-medium"
+                        disabled={loading}
                     >
-                        <span className="material-symbols-outlined">add</span>
-                        Create New Assessment
+                        <span className={`material-symbols-outlined ${loading ? 'animate-spin' : ''}`}>refresh</span>
+                        <span>Refresh</span>
                     </button>
-                )}
+                    {isAdminOrTrainer && (
+                        <button
+                            onClick={() => navigate('/create-assessment')}
+                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-red-100 dark:shadow-none"
+                        >
+                            <span className="material-symbols-outlined">add</span>
+                            Create New Assessment
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Content */}

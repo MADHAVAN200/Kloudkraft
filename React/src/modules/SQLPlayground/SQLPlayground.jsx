@@ -36,7 +36,7 @@ function SQLPlayground() {
   const PlaygroundCard = ({ title, description, icon, onClick, disabled, colorClass, iconColorClass }) => (
     <div
       onClick={!disabled ? onClick : undefined}
-      className={`relative group bg-white dark:bg-brand-card rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between transition-all duration-300 ${!disabled ? 'hover:shadow-lg hover:-translate-y-1 cursor-pointer' : 'opacity-70 cursor-not-allowed'}`}
+      className={`relative group bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between transition-all duration-300 ease-in-out ${!disabled ? 'hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 cursor-pointer' : 'opacity-70 cursor-not-allowed'}`}
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 dark:bg-gray-800 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-50 transition-opacity"></div>
 
@@ -71,7 +71,7 @@ function SQLPlayground() {
         {/* Available Datasets Card - Admin & Trainer only */}
         {isAdminOrTrainer && (
           <PlaygroundCard
-            title="Dataset Upload"
+            title="Datasets"
             description="Import and manage relevant datasets for your SQL assessments."
             icon="database"
             onClick={() => navigate('/available-datasets')}

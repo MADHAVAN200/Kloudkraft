@@ -18,9 +18,23 @@ function UsersAndCohorts() {
         }
     }, [activeTab]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (forceRefresh = false) => {
         setLoading(true);
         setError(null);
+
+        if (!forceRefresh) {
+            const cached = sessionStorage.getItem('cached_users');
+            if (cached) {
+                try {
+                    setUsers(JSON.parse(cached));
+                    setLoading(false);
+                    return;
+                } catch (e) {
+                    sessionStorage.removeItem('cached_users');
+                }
+            }
+        }
+
         try {
             // Using the new SQL Admin API directly
             const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=users', {
@@ -37,6 +51,7 @@ function UsersAndCohorts() {
             // Expected format: { count: 5, users: ["name1", "name2"] }
             if (data.users && Array.isArray(data.users)) {
                 setUsers(data.users);
+                sessionStorage.setItem('cached_users', JSON.stringify(data.users));
             } else {
                 console.warn('API returned unexpected format:', data);
                 setUsers([]);
@@ -50,9 +65,23 @@ function UsersAndCohorts() {
         }
     };
 
-    const fetchCohorts = async () => {
+    const fetchCohorts = async (forceRefresh = false) => {
         setLoading(true);
         setError(null);
+
+        if (!forceRefresh) {
+            const cached = sessionStorage.getItem('cached_cohorts');
+            if (cached) {
+                try {
+                    setCohorts(JSON.parse(cached));
+                    setLoading(false);
+                    return;
+                } catch (e) {
+                    sessionStorage.removeItem('cached_cohorts');
+                }
+            }
+        }
+
         try {
             // Using the new SQL Admin API directly
             const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=cohorts', {
@@ -69,6 +98,7 @@ function UsersAndCohorts() {
             // Expected format: { count: 3, cohorts: ["name1", "name2"] }
             if (data.cohorts && Array.isArray(data.cohorts)) {
                 setCohorts(data.cohorts);
+                sessionStorage.setItem('cached_cohorts', JSON.stringify(data.cohorts));
             } else {
                 console.warn('API returned unexpected format:', data);
                 setCohorts([]);
@@ -79,6 +109,14 @@ function UsersAndCohorts() {
             setCohorts([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRefresh = () => {
+        if (activeTab === 'users') {
+            fetchUsers(true);
+        } else {
+            fetchCohorts(true);
         }
     };
 
@@ -98,11 +136,19 @@ function UsersAndCohorts() {
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Users & Cohorts</h1>
                         <p className="text-gray-500 dark:text-gray-400 mt-2">Manage user access and create cohorts for assessments.</p>
                     </div>
+                    <button
+                        onClick={handleRefresh}
+                        className="flex items-center gap-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 transition-all font-medium"
+                        disabled={loading}
+                    >
+                        <span className={`material-symbols-outlined ${loading ? 'animate-spin' : ''}`}>refresh</span>
+                        <span>Refresh</span>
+                    </button>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="bg-white dark:bg-brand-card rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 {/* Tabs */}
                 <div className="flex border-b border-gray-100 dark:border-gray-700">
                     <button
@@ -143,7 +189,7 @@ function UsersAndCohorts() {
                             {users.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                     {users.map((username, idx) => (
-                                        <div key={idx} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-shadow flex items-center gap-4 group">
+                                        <div key={idx} className="bg-white dark:bg-white/5 dark:backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-4 hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out flex items-center gap-4 group">
                                             <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm bg-gradient-to-br from-red-500 to-red-600">
                                                 {username.charAt(0).toUpperCase()}
                                             </div>
@@ -175,7 +221,7 @@ function UsersAndCohorts() {
                             {cohorts.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {cohorts.map((cohortName, index) => (
-                                        <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg transition-shadow flex items-center gap-4">
+                                        <div key={index} className="bg-white dark:bg-white/5 dark:backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6 hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out flex items-center gap-4">
                                             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center text-red-600 dark:text-red-400 flex-shrink-0">
                                                 <span className="material-symbols-outlined text-2xl">school</span>
                                             </div>

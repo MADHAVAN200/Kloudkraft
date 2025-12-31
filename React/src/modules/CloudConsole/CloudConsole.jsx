@@ -89,7 +89,7 @@ function CloudConsole() {
           <button
             key={credential.id}
             onClick={() => handleCredentialClick(credential.type)}
-            className="bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center hover:shadow-md transition-all hover:scale-105 cursor-pointer"
+            className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 rounded-xl shadow-sm border border-gray-200 p-6 text-center hover:scale-[1.05] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out cursor-pointer"
           >
             <div className={`${credential.color} rounded-2xl p-4 inline-block mb-4`}>
               <span className="text-4xl">{credential.icon}</span>

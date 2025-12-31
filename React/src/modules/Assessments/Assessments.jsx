@@ -73,13 +73,13 @@ function Assessments() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Dataset Upload Card - Admin & Trainer only */}
+        {/* Datasets Card - Admin & Trainer only */}
         {isAdminOrTrainer && (
           <AssessmentCard
-            title="Dataset Upload"
-            description="Import and manage relevant datasets for your assessments."
+            title="Datasets"
+            description="Manage and upload question set datasets."
             icon="database"
-            onClick={() => navigate('/dataset-upload?from=assessments')}
+            onClick={() => navigate('/assessment-datasets')}
             colorClass="bg-blue-50 dark:bg-blue-900/20"
             iconColorClass="text-blue-600 dark:text-blue-400"
           />

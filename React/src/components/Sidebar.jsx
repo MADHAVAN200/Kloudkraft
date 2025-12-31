@@ -17,6 +17,7 @@ function Sidebar() {
                 '/assessments-list',
                 '/users-cohorts',
                 '/available-datasets',
+                '/zip-dataset-upload',
                 '/sql-playground/create-assessment'
             ];
             const params = new URLSearchParams(location.search);
@@ -28,18 +29,23 @@ function Sidebar() {
             }
             if (sqlPlaygroundPages.includes(location.pathname)) {
                 // For shared pages like reports, check the 'from' param if needed, or if it's strongly owned
-                if (location.pathname === '/users-cohorts' || location.pathname === '/available-datasets' || location.pathname === '/sql-playground/create-assessment') return true;
+                if (location.pathname === '/users-cohorts' || location.pathname === '/available-datasets' || location.pathname === '/zip-dataset-upload' || location.pathname === '/sql-playground/create-assessment') return true;
                 if (from === 'sql-playground') return true;
             }
         }
 
         // Special case: highlight "Assessments" when on related pages
         if (path === '/assessments') {
-            const assessmentsPages = ['/dataset-upload', '/create-assessment', '/reports', '/assessments-list', '/assessment/take/', '/assessment/results/'];
+            const assessmentsPages = ['/dataset-upload', '/create-assessment', '/reports', '/assessments-list', '/assessment-datasets', '/assessment/take/', '/assessment/results/'];
             const params = new URLSearchParams(location.search);
             const from = params.get('from');
             // Check for nested assessment routes
             if (location.pathname.startsWith('/assessments') || location.pathname.startsWith('/assessment/')) {
+                return true;
+            }
+
+            // Unconditionally highlight for core assessment pages
+            if (['/assessments-list', '/assessment-datasets'].includes(location.pathname)) {
                 return true;
             }
 
@@ -48,13 +54,17 @@ function Sidebar() {
             }
         }
 
+        // Special case: highlight "Content" for candidates
+        if (path === '/cohort-content/1' && location.pathname.startsWith('/cohort-content')) {
+            return true;
+        }
+
         return location.pathname === path;
     };
 
     // All users can see these
     const baseNavItems = [
         { path: '/dashboard', label: 'Dashboard', icon: 'grid_view' },
-        { path: '/content-uploading', label: 'Content Uploading', icon: 'folder_shared' },
         { path: '/virtual-machine', label: 'Virtual Machine', icon: 'computer' },
         { path: '/cloud-console', label: 'Cloud Console', icon: 'vpn_key' },
         { path: '/cloud-labs', label: 'Cloud Labs', icon: 'cloud' },
@@ -62,13 +72,17 @@ function Sidebar() {
 
     // Admin and Trainer can see these
     const adminTrainerItems = [
+        { path: '/content-uploading', label: 'Cohorts', icon: 'school' },
         { path: '/sql-playground', label: 'SQL Playground', icon: 'database' },
+        { path: '/code-env', label: 'Code Env', icon: 'terminal' },
         { path: '/assessments', label: 'Assessments', icon: 'code' },
     ];
 
     // Candidate can see limited items
     const candidateItems = [
+        { path: '/cohort-content/1', label: 'Content', icon: 'school' },
         { path: '/sql-playground', label: 'SQL Playground', icon: 'database' },
+        { path: '/code-env', label: 'Code Env', icon: 'terminal' },
         { path: '/assessments', label: 'Assessments', icon: 'code' },
     ];
 

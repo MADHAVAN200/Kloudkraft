@@ -1,199 +1,89 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 function Content() {
     const { userRole } = useAuth();
     const isAuthorized = userRole === 'admin' || userRole === 'trainer';
 
-    // Static data for demonstration
-    const [contentList, setContentList] = useState([
-        {
-            id: 1,
-            title: 'Course Introduction',
-            type: 'file',
-            url: '#',
-            date: '2025-10-25',
-            author: 'Admin User'
-        },
-        {
-            id: 2,
-            title: 'Module 1 Study Guide',
-            type: 'file',
-            url: '#',
-            date: '2025-10-26',
-            author: 'Trainer One'
-        },
-        {
-            id: 3,
-            title: 'External Resource Link',
-            type: 'link',
-            url: 'https://example.com',
-            date: '2025-10-27',
-            author: 'Admin User'
-        }
+    // Static data for 10 Cohorts as requested
+    const [cohorts] = useState([
+        { id: 1, name: 'Cohort Alpha', description: 'Full Stack Development', students: 25, start_date: '2025-01-10' },
+        { id: 2, name: 'Cohort Beta', description: 'Data Science Fundamentals', students: 30, start_date: '2025-01-15' },
+        { id: 3, name: 'Cohort Gamma', description: 'Cyber Security Essentials', students: 20, start_date: '2025-02-01' },
+        { id: 4, name: 'Cohort Delta', description: 'Cloud Computing Architecture', students: 28, start_date: '2025-02-10' },
+        { id: 5, name: 'Cohort Epsilon', description: 'AI & Machine Learning', students: 35, start_date: '2025-02-20' },
+        { id: 6, name: 'Cohort Zeta', description: 'DevOps Engineering', students: 22, start_date: '2025-03-01' },
+        { id: 7, name: 'Cohort Eta', description: 'Blockchain Technologies', students: 18, start_date: '2025-03-15' },
+        { id: 8, name: 'Cohort Theta', description: 'UI/UX Design Principles', students: 25, start_date: '2025-04-01' },
+        { id: 9, name: 'Cohort Iota', description: 'Mobile App Development', students: 24, start_date: '2025-04-10' },
+        { id: 10, name: 'Cohort Kappa', description: 'Software Testing & QA', students: 20, start_date: '2025-04-20' }
     ]);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newContent, setNewContent] = useState({ title: '', type: 'file', url: '' });
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewContent({ ...newContent, [name]: value });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const newItem = {
-            id: contentList.length + 1,
-            ...newContent,
-            date: new Date().toISOString().split('T')[0],
-            author: 'Current User' // Placeholder
-        };
-        setContentList([...contentList, newItem]);
-        setIsModalOpen(false);
-        setNewContent({ title: '', type: 'file', url: '' });
-    };
+    const navigate = useNavigate();
 
     return (
         <div className="w-full p-4 md:p-6 space-y-6 transition-colors duration-300">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-brand-card p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 transition-colors duration-300">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Content Uploading</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage and view course materials and resources</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cohorts</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage and view all active training cohorts</p>
                 </div>
 
                 {isAuthorized && (
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm font-medium w-full md:w-auto justify-center"
-                    >
+                    <button className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm font-medium w-full md:w-auto justify-center">
                         <span className="material-symbols-outlined text-xl">add</span>
-                        Add Content
+                        Create Cohort
                     </button>
                 )}
             </div>
 
-            {/* Content Grid */}
+            {/* Cohorts Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {contentList.map((item) => (
-                    <div key={item.id} className="group bg-white dark:bg-brand-card rounded-xl border border-gray-200 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-500/50 hover:shadow-md transition-all duration-200 overflow-hidden">
+                {cohorts.map((cohort) => (
+                    <div
+                        key={cohort.id}
+                        onClick={() => navigate(`/cohort-content/${cohort.id}`)}
+                        className="group bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 rounded-xl border border-gray-200 hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out overflow-hidden cursor-pointer"
+                    >
                         <div className="p-6">
                             <div className="flex items-start justify-between mb-4">
-                                <div className={`p-3 rounded-lg ${item.type === 'file' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
-                                    }`}>
-                                    <span className="material-symbols-outlined text-2xl">
-                                        {item.type === 'file' ? 'description' : 'link'}
-                                    </span>
+                                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                                    <span className="material-symbols-outlined text-2xl">school</span>
                                 </div>
-                                {isAuthorized && (
-                                    <button className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors">
-                                        <span className="material-symbols-outlined">more_vert</span>
-                                    </button>
-                                )}
+                                <button className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                                    <span className="material-symbols-outlined">more_vert</span>
+                                </button>
                             </div>
 
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
-                                {item.title}
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                {cohort.name}
                             </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-1">
+                                {cohort.description}
+                            </p>
 
-                            <div className="space-y-2 mb-4">
-                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                    <span className="material-symbols-outlined text-base">calendar_today</span>
-                                    <span>{item.date}</span>
+                            <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
+                                <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                        <span className="material-symbols-outlined text-lg">group</span>
+                                        <span>Students</span>
+                                    </div>
+                                    <span className="font-semibold text-gray-900 dark:text-gray-200">{cohort.students}</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                    <span className="material-symbols-outlined text-base">person</span>
-                                    <span>{item.author}</span>
+                                <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                        <span className="material-symbols-outlined text-lg">event</span>
+                                        <span>Start Date</span>
+                                    </div>
+                                    <span className="font-semibold text-gray-900 dark:text-gray-200">{cohort.start_date}</span>
                                 </div>
                             </div>
-
-                            <a
-                                href={item.url}
-                                className="inline-flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:underline"
-                            >
-                                {item.type === 'file' ? 'Download File' : 'Visit Link'}
-                            </a>
                         </div>
                     </div>
                 ))}
             </div>
-
-            {/* Upload Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white dark:bg-brand-card rounded-xl shadow-xl w-full max-w-md p-4 md:p-6 animate-in fade-in zoom-in duration-200 border border-gray-100 dark:border-gray-700">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Content</h2>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-300"
-                            >
-                                <span className="material-symbols-outlined">close</span>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value={newContent.title}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                                    placeholder="Enter content title"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
-                                <select
-                                    name="type"
-                                    value={newContent.type}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                                >
-                                    <option value="file">File Upload</option>
-                                    <option value="link">External Link</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    {newContent.type === 'file' ? 'File URL' : 'Link URL'}
-                                </label>
-                                <input
-                                    type="text"
-                                    name="url"
-                                    value={newContent.url}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                                    placeholder="https://..."
-                                    required
-                                />
-                            </div>
-
-                            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors shadow-sm"
-                                >
-                                    Add Content
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

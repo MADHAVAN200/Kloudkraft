@@ -22,7 +22,11 @@ import Reports from './Reports.jsx';
 import AvailableDatasets from './modules/SQLPlayground/AvailableDatasets.jsx';
 import UsersAndCohorts from './modules/SQLPlayground/UsersAndCohorts.jsx';
 import CreateSQLAssessment from './modules/SQLPlayground/CreateSQLAssessment.jsx';
+import ZipDatasetUpload from './modules/SQLPlayground/ZipDatasetUpload.jsx';
 import Content from './modules/ContentUploading/Content.jsx';
+import CodeEnvironment from './modules/CodeEnvironment/CodeEnvironment.jsx';
+import AssessmentDatasets from './modules/Assessments/AssessmentDatasets.jsx';
+import CohortContent from './modules/ContentUploading/CohortContent.jsx';
 
 function KloudkraftAdminContent() {
   return (
@@ -62,12 +66,21 @@ function KloudkraftAdminContent() {
                       {/* Routes accessible to all authenticated users */}
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/content-uploading" element={<Content />} />
+                      <Route path="/cohort-content/:cohortId" element={<CohortContent />} />
                       <Route path="/virtual-machine" element={<VirtualMachine />} />
                       <Route path="/cloud-console" element={<CloudConsole />} />
                       <Route path="/cloud-labs" element={<CloudLabs />} />
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/assessments" element={<Assessments />} />
                       <Route path="/assessments-list" element={<AssessmentsList />} />
+                      <Route
+                        path="/assessment-datasets"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'trainer']}>
+                            <AssessmentDatasets />
+                          </ProtectedRoute>
+                        }
+                      />
 
                       <Route path="/sql-playground" element={<SQLPlayground />} />
                       <Route
@@ -99,6 +112,22 @@ function KloudkraftAdminContent() {
                         element={
                           <ProtectedRoute allowedRoles={['admin', 'trainer']}>
                             <UsersAndCohorts />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/zip-dataset-upload"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'trainer']}>
+                            <ZipDatasetUpload />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/code-env"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'trainer', 'candidate']}>
+                            <CodeEnvironment />
                           </ProtectedRoute>
                         }
                       />

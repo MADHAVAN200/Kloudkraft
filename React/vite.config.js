@@ -23,6 +23,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/sql-admin-api/, ''),
         secure: false
+      },
+      '/zip-upload-api': {
+        target: 'https://yaqx2p2toqxk3fjgbn53rf3dii0epiji.lambda-url.eu-central-1.on.aws',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/zip-upload-api/, ''),
+        secure: false
       }
     }
   }

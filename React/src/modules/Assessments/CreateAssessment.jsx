@@ -55,12 +55,12 @@ function CreateAssessment() {
     setLoadingDatasets(true);
     setDatasetError('');
     try {
-      // Use list_datasets API via proxy
+      // Use list_datasets API directly
       const payload = {
         action: "list_datasets"
       };
 
-      const response = await fetch('/assessment-mgmt-api/', {
+      const response = await fetch('https://u5vjutu2euwnn2uhiertnt6fte0vrbht.lambda-url.eu-central-1.on.aws/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -73,8 +73,18 @@ function CreateAssessment() {
       }
 
       const data = await response.json();
-      // Response comes directly, not wrapped in body (based on curl test)
-      const responseBody = data;
+
+      // Handle Lambda response structure
+      let responseBody = data;
+      if (data.body && typeof data.body === 'string') {
+        try {
+          responseBody = JSON.parse(data.body);
+        } catch (e) {
+          console.warn('Failed to parse data.body', e);
+        }
+      } else if (data.body) {
+        responseBody = data.body;
+      }
 
       if (responseBody && responseBody.success && responseBody.datasets) {
         setDatasets(responseBody.datasets);
@@ -173,6 +183,7 @@ function CreateAssessment() {
 
       if (responseBody && responseBody.success) {
         // alert(editId ? 'Assessment updated successfully!' : 'Assessment created successfully!');
+        sessionStorage.removeItem('cached_assessments');
         setShowSuccessModal(true);
       } else {
         alert(`Failed to ${editId ? 'update' : 'create'} assessment: ${responseBody?.message || 'Unknown error'}`);

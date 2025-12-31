@@ -44,7 +44,7 @@ function Dashboard() {
   // ----- Render Components -----
 
   const StatCard = ({ label, value, icon, color }) => (
-    <div className="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between hover:shadow-md transition-all duration-300">
+    <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
       <div>
         <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{label}</p>
         <h3 className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{value}</h3>
@@ -105,7 +105,7 @@ function Dashboard() {
         ))}
 
         {/* Large Chart Area (Updates Visualization) */}
-        <div className="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-2 lg:col-span-3 min-h-[300px] flex flex-col transition-all duration-300">
+        <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-2xl shadow-sm border border-gray-100 md:col-span-2 lg:col-span-3 min-h-[300px] flex flex-col hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-lg text-gray-900 dark:text-white">Platform Activity</h3>
             <select className="text-sm border-gray-200 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 focus:ring-red-500 focus:border-red-500">
@@ -128,7 +128,7 @@ function Dashboard() {
         </div>
 
         {/* System Notifications */}
-        <div className="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-2 lg:col-span-1 flex flex-col h-full transition-all duration-300">
+        <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-2xl shadow-sm border border-gray-100 md:col-span-2 lg:col-span-1 flex flex-col h-full hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-lg text-gray-900 dark:text-white">Notifications</h3>
             <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs px-2 py-1 rounded-full font-medium">4 New</span>
@@ -146,7 +146,7 @@ function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-2 flex flex-col justify-between relative overflow-hidden group transition-all duration-300">
+        <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-2xl shadow-sm border border-gray-100 md:col-span-2 flex flex-col justify-between relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 dark:bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
           <div>
             <h3 className="font-bold text-lg text-gray-900 dark:text-white">Quick Actions</h3>
@@ -171,7 +171,7 @@ function Dashboard() {
         </div>
 
         {/* System Health */}
-        <div className="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-2 flex items-center justify-between transition-all duration-300">
+        <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-2xl shadow-sm border border-gray-100 md:col-span-2 flex items-center justify-between hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
           <div className="flex items-center gap-4">
             <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full">
               <span className="material-symbols-outlined">dns</span>
@@ -211,7 +211,7 @@ function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-min">
 
         {/* Main Progress Card */}
-        <div className="bg-white dark:bg-[#1E2939] text-gray-900 dark:text-white p-8 rounded-3xl md:col-span-2 flex flex-col justify-between relative overflow-hidden group shadow-sm border border-gray-100 dark:border-none">
+        <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg text-gray-900 dark:text-white p-8 rounded-3xl md:col-span-2 flex flex-col justify-between relative overflow-hidden group shadow-sm border border-gray-100 dark:border-white/10 hover:scale-[1.01] hover:shadow-xl transition-all duration-300 ease-in-out">
           {/* Background Decorations */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 dark:bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-red-50 dark:bg-black/20 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3"></div>
@@ -234,7 +234,7 @@ function Dashboard() {
 
         {/* Quick Stats */}
         <div className="space-y-6 md:col-span-1">
-          <div className="bg-white dark:bg-brand-card p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-3xl shadow-sm border border-gray-100 hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
             <div className="flex items-center gap-4 mb-4">
               <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded-xl">
                 <span className="material-symbols-outlined">emoji_events</span>
@@ -245,7 +245,7 @@ function Dashboard() {
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Top 15% of your cohort</p>
           </div>
 
-          <div className="bg-white dark:bg-brand-card p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-3xl shadow-sm border border-gray-100 hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
             <div className="flex items-center gap-4 mb-4">
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
                 <span className="material-symbols-outlined">schedule</span>
@@ -258,7 +258,7 @@ function Dashboard() {
         </div>
 
         {/* Recent Assessment Result */}
-        <div className="bg-white dark:bg-brand-card p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-1 flex flex-col transition-all duration-300">
+        <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-3xl shadow-sm border border-gray-100 md:col-span-1 flex flex-col hover:scale-[1.02] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
           <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-4">Recent Result</h3>
           <div className="flex-1 flex flex-col justify-center items-center text-center p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-dashed border-gray-200 dark:border-gray-600">
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-3">
@@ -279,7 +279,7 @@ function Dashboard() {
         </div>
 
         {/* Notifications */}
-        <div className="bg-white dark:bg-brand-card p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-2 transition-all duration-300">
+        <div className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 p-6 rounded-3xl shadow-sm border border-gray-100 md:col-span-2 hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-lg text-gray-900 dark:text-white">Notifications</h3>
             <button className="text-sm text-red-600 dark:text-red-400 font-medium hover:underline">Mark all read</button>
