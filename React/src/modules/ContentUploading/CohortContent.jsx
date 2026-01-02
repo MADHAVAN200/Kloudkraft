@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import Breadcrumbs from '../../components/Breadcrumbs';
@@ -20,53 +20,202 @@ function CohortContent() {
             { label: cohortName }
         ];
 
-    // Static data for demonstration (restored from original Content.jsx)
-    const [contentList, setContentList] = useState([
-        {
-            id: 1,
-            title: 'Course Introduction',
-            type: 'file',
-            url: '#',
-            date: '2025-10-25',
-            author: 'Admin User'
-        },
-        {
-            id: 2,
-            title: 'Module 1 Study Guide',
-            type: 'file',
-            url: '#',
-            date: '2025-10-26',
-            author: 'Trainer One'
-        },
-        {
-            id: 3,
-            title: 'External Resource Link',
-            type: 'link',
-            url: 'https://example.com',
-            date: '2025-10-27',
-            author: 'Admin User'
-        }
-    ]);
+    // State for content list
+    const [contentList, setContentList] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newContent, setNewContent] = useState({ title: '', type: 'file', url: '' });
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+
+    const fetchContent = async () => {
+        try {
+            console.log('Fetching content for cohort:', cohortId);
+            // FETCH: Removing /content suffix so backend logic parts[-1] gets the ID correctly
+            // Backend Logic: parts[-1] ("cohort-123")
+            const response = await fetch(`/content-fetch-api/cohorts/${cohortId}`, {
+                cache: 'no-store' // Critical: Prevent browser from caching the list
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch content: ${response.status}`);
+            }
+
+            let data = await response.json();
+            console.log('Fetch RAW response:', data);
+
+            let files = [];
+            if (data.files) {
+                files = data.files;
+            } else if (data.body) {
+                try {
+                    const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+                    files = parsedBody.files || [];
+                } catch (e) {
+                    console.error('Error parsing body:', e);
+                }
+            }
+
+            console.log('Processed Files List:', files);
+
+            const formattedContent = files.map((file, index) => ({
+                id: index + 1,
+                title: file.name.replace(/\.json$/, ''), // Remove .json extension for cleaner display
+                type: file.s3Key.endsWith('.json') ? 'link' : 'file', // Correctly identify links using s3Key
+                date: new Date(file.lastModified).toLocaleDateString(),
+                author: 'Admin',
+                url: file.url
+            }));
+
+            setContentList(formattedContent);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching content:', error);
+            setError('Failed to load content');
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchContent();
+    }, [cohortId]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewContent({ ...newContent, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    const handleFileChange = (e) => {
+        if (e.target.files[0]) {
+            setSelectedFile(e.target.files[0]);
+        }
+    };
+
+    const readFileAsBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]); // Get base64 content
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const newItem = {
-            id: contentList.length + 1,
-            ...newContent,
-            date: new Date().toISOString().split('T')[0],
-            author: 'Current User' // Placeholder
-        };
-        setContentList([...contentList, newItem]);
-        setIsModalOpen(false);
-        setNewContent({ title: '', type: 'file', url: '' });
+
+        if (newContent.type === 'file' && !selectedFile) {
+            alert('Please select a file to upload');
+            return;
+        }
+
+        setUploading(true);
+
+        try {
+            let finalUrl = newContent.url;
+            console.log('Starting content upload...');
+
+            if (newContent.type === 'file') {
+                // Validate file type based on backend allowed list
+                const allowedTypes = [
+                    'video/mp4', 'video/avi', 'video/quicktime', 'video/mpeg',
+                    'text/csv', 'text/plain',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/pdf',
+                    'image/png', 'image/x-png' // Added PNG support
+                ];
+
+                if (!allowedTypes.includes(selectedFile.type)) {
+                    alert('Unsupported file type. Allowed: PDF, DOCX, CSV, TXT, MP4, AVI, MOV, MPEG, PNG');
+                    setUploading(false);
+                    return;
+                }
+
+                const base64Content = await readFileAsBase64(selectedFile);
+
+                const payload = {
+                    type: 'file',
+                    filename: selectedFile.name,
+                    fileData: base64Content
+                };
+
+                console.log('Sending FILE payload to Proxy:', `/content-upload-api/cohorts/${cohortId}`);
+                // Use proxy to bypass CORS
+                // UPLOAD: Removing /content suffix and fixing Content-Type
+                const response = await fetch(`/content-upload-api/cohorts/${cohortId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log('Upload Response Status:', response.status);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Upload failed with status:', response.status, 'Response:', errorText);
+                    throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Response JSON:', data);
+
+                let responseBody = data;
+                if (data.body && typeof data.body === 'string') {
+                    try {
+                        responseBody = JSON.parse(data.body);
+                    } catch (e) {
+                        console.error('Error parsing inner JSON body:', e);
+                    }
+                } else if (data.body) {
+                    responseBody = data.body;
+                }
+                console.log('Parsed Response Body:', responseBody);
+
+                if (responseBody.success) {
+                    finalUrl = responseBody.s3Url;
+                } else {
+                    throw new Error(responseBody.message || 'Upload failed');
+                }
+            } else if (newContent.type === 'link') {
+                const payload = {
+                    type: 'url',
+                    url: newContent.url,
+                    filename: newContent.title
+                };
+
+                console.log('Sending URL payload to direct Lambda URL');
+                // Use proxy to bypass CORS
+                const response = await fetch(`/content-upload-api/cohorts/${cohortId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+                }
+            }
+
+            const newItem = {
+                id: contentList.length + 1,
+                ...newContent,
+                url: finalUrl,
+                date: new Date().toISOString().split('T')[0],
+                author: 'Current User' // Placeholder
+            };
+            setContentList([...contentList, newItem]);
+            setIsModalOpen(false);
+            setNewContent({ title: '', type: 'file', url: '' });
+            setSelectedFile(null);
+            alert('Content added successfully!');
+            // Refresh the list from the server
+            fetchContent();
+        } catch (error) {
+            console.error('Error adding content:', error);
+            alert(`Failed to add content: ${error.message}`);
+        } finally {
+            setUploading(false);
+        }
     };
 
     return (
@@ -177,34 +326,53 @@ function CohortContent() {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    {newContent.type === 'file' ? 'File URL' : 'Link URL'}
-                                </label>
-                                <input
-                                    type="text"
-                                    name="url"
-                                    value={newContent.url}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-white/5 text-gray-900 dark:text-white"
-                                    placeholder="https://..."
-                                    required
-                                />
-                            </div>
+                            {newContent.type === 'file' ? (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File</label>
+                                    <input
+                                        key="file-input"
+                                        type="file"
+                                        onChange={handleFileChange}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-white/5 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 dark:file:bg-red-900/20 dark:file:text-red-400"
+                                        required
+                                    />
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link URL</label>
+                                    <input
+                                        key="url-input"
+                                        type="text"
+                                        name="url"
+                                        value={newContent.url}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white dark:bg-white/5 text-gray-900 dark:text-white"
+                                        placeholder="https://..."
+                                        required
+                                    />
+                                </div>
+                            )}
 
                             <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
                                     className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors"
+                                    disabled={uploading}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors shadow-sm"
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={uploading}
                                 >
-                                    Add Content
+                                    {uploading ? (
+                                        <span className="flex items-center justify-center gap-2">
+                                            <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                                            Uploading...
+                                        </span>
+                                    ) : 'Add Content'}
                                 </button>
                             </div>
                         </form>

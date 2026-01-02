@@ -8,16 +8,16 @@ function Content() {
 
     // Static data for 10 Cohorts as requested
     const [cohorts] = useState([
-        { id: 1, name: 'Cohort Alpha', description: 'Full Stack Development', students: 25, start_date: '2025-01-10' },
-        { id: 2, name: 'Cohort Beta', description: 'Data Science Fundamentals', students: 30, start_date: '2025-01-15' },
-        { id: 3, name: 'Cohort Gamma', description: 'Cyber Security Essentials', students: 20, start_date: '2025-02-01' },
-        { id: 4, name: 'Cohort Delta', description: 'Cloud Computing Architecture', students: 28, start_date: '2025-02-10' },
-        { id: 5, name: 'Cohort Epsilon', description: 'AI & Machine Learning', students: 35, start_date: '2025-02-20' },
-        { id: 6, name: 'Cohort Zeta', description: 'DevOps Engineering', students: 22, start_date: '2025-03-01' },
-        { id: 7, name: 'Cohort Eta', description: 'Blockchain Technologies', students: 18, start_date: '2025-03-15' },
-        { id: 8, name: 'Cohort Theta', description: 'UI/UX Design Principles', students: 25, start_date: '2025-04-01' },
-        { id: 9, name: 'Cohort Iota', description: 'Mobile App Development', students: 24, start_date: '2025-04-10' },
-        { id: 10, name: 'Cohort Kappa', description: 'Software Testing & QA', students: 20, start_date: '2025-04-20' }
+        { id: 'cohort-123', name: 'Cohort Alpha', description: 'Full Stack Development', students: 25, start_date: '2025-01-10' },
+        { id: 'cohort-2', name: 'Cohort Beta', description: 'Data Science Fundamentals', students: 30, start_date: '2025-01-15' },
+        { id: 'cohort-3', name: 'Cohort Gamma', description: 'Cyber Security Essentials', students: 20, start_date: '2025-02-01' },
+        { id: 'cohort-4', name: 'Cohort Delta', description: 'Cloud Computing Architecture', students: 28, start_date: '2025-02-10' },
+        { id: 'cohort-5', name: 'Cohort Epsilon', description: 'AI & Machine Learning', students: 35, start_date: '2025-02-20' },
+        { id: 'cohort-6', name: 'Cohort Zeta', description: 'DevOps Engineering', students: 22, start_date: '2025-03-01' },
+        { id: 'cohort-7', name: 'Cohort Eta', description: 'Blockchain Technologies', students: 18, start_date: '2025-03-15' },
+        { id: 'cohort-8', name: 'Cohort Theta', description: 'UI/UX Design Principles', students: 25, start_date: '2025-04-01' },
+        { id: 'cohort-9', name: 'Cohort Iota', description: 'Mobile App Development', students: 24, start_date: '2025-04-10' },
+        { id: 'cohort-10', name: 'Cohort Kappa', description: 'Software Testing & QA', students: 20, start_date: '2025-04-20' }
     ]);
 
     const navigate = useNavigate();

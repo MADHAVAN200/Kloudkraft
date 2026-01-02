@@ -29,6 +29,18 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/zip-upload-api/, ''),
         secure: false
+      },
+      '/content-upload-api': {
+        target: 'https://cd7ybw2xammmk65arxfgovjdbq0kfkae.lambda-url.eu-central-1.on.aws',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/content-upload-api/, ''),
+        secure: false
+      },
+      '/content-fetch-api': {
+        target: 'https://2h3ttolsuw4s6owyk65rdrr6q40nahmd.lambda-url.eu-central-1.on.aws',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/content-fetch-api/, ''),
+        secure: false
       }
     }
   }
