@@ -18,7 +18,7 @@ import Assessments from './modules/Assessments/Assessments.jsx';
 import AssessmentsList from './modules/Assessments/AssessmentsList.jsx';
 import TakeAssessment from './modules/Assessments/TakeAssessment.jsx';
 import AssessmentResults from './modules/Assessments/AssessmentResults.jsx';
-import Reports from './Reports.jsx';
+import Reports from './modules/Assessments/Reports.jsx';
 import AvailableDatasets from './modules/SQLPlayground/AvailableDatasets.jsx';
 import UsersAndCohorts from './modules/SQLPlayground/UsersAndCohorts.jsx';
 import CreateSQLAssessment from './modules/SQLPlayground/CreateSQLAssessment.jsx';

@@ -36,6 +36,19 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/content-upload-api/, ''),
         secure: false
       },
+      '/reports-api': {
+        target: 'https://e7w4xx4lfm2scv4qmvat2qwskm0cjhrv.lambda-url.eu-central-1.on.aws',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/reports-api/, ''),
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            // Remove the header to prevent "multiple values" error
+            delete proxyRes.headers['access-control-allow-origin'];
+            delete proxyRes.headers['Access-Control-Allow-Origin']; // Case sensitivity safety
+          });
+        }
+      },
       '/content-fetch-api': {
         target: 'https://2h3ttolsuw4s6owyk65rdrr6q40nahmd.lambda-url.eu-central-1.on.aws',
         changeOrigin: true,
