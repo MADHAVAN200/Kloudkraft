@@ -119,9 +119,9 @@ function SQLPlayground() {
           title="Assessments"
           description="Browse all assessments and manage existing test sets."
           icon="assignment"
-          disabled={true}
-          colorClass="bg-gray-100 dark:bg-gray-800"
-          iconColorClass="text-gray-500 dark:text-gray-400"
+          onClick={() => navigate('/sql-playground/assessments')}
+          colorClass="bg-red-50 dark:bg-red-900/20"
+          iconColorClass="text-red-600 dark:text-red-400"
         />
       </div>
     </div>

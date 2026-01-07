@@ -31,20 +31,24 @@ function CreateSQLAssessment() {
         setLoadingDatasets(true);
         setDatasetError('');
         try {
-            const payload = { action: "list_datasets" };
-            const response = await fetch('/assessment-mgmt-api/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=databases', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
             });
 
-            if (!response.ok) throw new Error('Failed to fetch datasets');
+            if (!response.ok) throw new Error('Failed to fetch databases');
 
             const data = await response.json();
-            if (data && data.success && data.datasets) {
-                setDatasets(data.datasets);
+
+            if (data && data.databases) {
+                // Map array of strings to objects expected by select
+                const mappedDatasets = data.databases.map(db => ({
+                    s3_key: db,
+                    filename: db
+                }));
+                setDatasets(mappedDatasets);
             } else {
-                throw new Error(data.message || 'Failed to fetch datasets');
+                throw new Error('Failed to fetch databases');
             }
         } catch (error) {
             console.error('Error:', error);
@@ -143,7 +147,7 @@ function CreateSQLAssessment() {
                             <div className="text-center py-8"><span className="material-symbols-outlined animate-spin text-red-500 text-3xl">progress_activity</span></div>
                         ) : (
                             <div className="space-y-4">
-                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Available Datasets</label>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Available Databases</label>
                                 <select
                                     value={selectedDataset}
                                     onChange={(e) => setSelectedDataset(e.target.value)}
@@ -203,7 +207,7 @@ function CreateSQLAssessment() {
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Review</h2>
                         <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg space-y-3 dark:text-gray-300">
                             <p><strong className="text-gray-900 dark:text-gray-100">Name:</strong> {assessmentName}</p>
-                            <p><strong className="text-gray-900 dark:text-gray-100">Dataset:</strong> {selectedDataset}</p>
+                            <p><strong className="text-gray-900 dark:text-gray-100">Database:</strong> {selectedDataset}</p>
                             <p><strong className="text-gray-900 dark:text-gray-100">Duration:</strong> {duration} mins</p>
                             <p><strong className="text-gray-900 dark:text-gray-100">Questions:</strong> {questionCount} ({randomQuestions ? 'Randomized' : 'Sequential'})</p>
                         </div>

@@ -49,6 +49,18 @@ export default defineConfig({
           });
         }
       },
+      '/sql-assessment-details-api': {
+        target: 'https://h2qmjqyjegeqq7m7p4i3jbwk2q0xrimw.lambda-url.eu-central-1.on.aws',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sql-assessment-details-api/, ''),
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            delete proxyRes.headers['access-control-allow-origin'];
+            delete proxyRes.headers['Access-Control-Allow-Origin'];
+          });
+        }
+      },
       '/content-fetch-api': {
         target: 'https://2h3ttolsuw4s6owyk65rdrr6q40nahmd.lambda-url.eu-central-1.on.aws',
         changeOrigin: true,

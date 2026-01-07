@@ -235,8 +235,7 @@ function TakeAssessment() {
             const baseUserId = user?.username || user?.attributes?.email || 'default-user';
             const userId = `${baseUserId}-${Date.now()}`;
 
-            console.log('Fetching questions for assessment:', assessmentId);
-            console.log('User ID (with timestamp for retakes):', userId);
+            console.log('Fetching questions for assessment (primary):', assessmentId);
 
             const payload = {
                 action: "get_questions",
@@ -244,69 +243,74 @@ function TakeAssessment() {
                 user_id: userId
             };
 
-            console.log('Payload object:', payload);
-
             const response = await fetch('/assessment-api/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Primary API error: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('Response data:', data);
-            console.log('Response data type:', typeof data);
-            console.log('Response data keys:', data ? Object.keys(data) : 'null');
 
             let responseBody = data.body;
             if (typeof responseBody === 'string') {
-                console.log('Parsing stringified body...');
                 responseBody = JSON.parse(responseBody);
-            } else {
-                console.log('Body is not a string, using data directly');
+            } else if (!responseBody) {
                 responseBody = data;
             }
 
-            console.log('Parsed response body:', responseBody);
-            console.log('Response body keys:', responseBody ? Object.keys(responseBody) : 'null');
-
-            if (responseBody && responseBody.questions) {
-                console.log('Questions found:', responseBody.questions.length);
+            if (responseBody && responseBody.questions && responseBody.questions.length > 0) {
                 setQuestions(responseBody.questions);
                 setSessionId(responseBody.session_id);
                 setAssessmentData({
                     name: responseBody.assessment_name || 'Assessment',
                     duration: responseBody.duration_minutes || 60
                 });
-                setTimeRemaining((responseBody.duration_minutes || 60) * 60); // Convert to seconds
-            } else if (responseBody && responseBody.error && responseBody.error.includes('already submitted')) {
-                // Handle already submitted error - allow retake by clearing session
-                console.log('Assessment already submitted, clearing session to allow retake');
-                localStorage.removeItem(`assessment_session_${assessmentId}`);
-                throw new Error('You have already submitted this assessment. The page will reload to allow you to retake it.');
+                setTimeRemaining((responseBody.duration_minutes || 60) * 60);
+                return; // Primary success
             } else {
-                console.error('Response does not contain questions. Full response:', responseBody);
-                throw new Error(responseBody?.error || responseBody?.message || 'Invalid response format - no questions found');
+                throw new Error('No questions encountered in primary API');
             }
-        } catch (err) {
-            console.error('Error fetching questions:', err);
-            console.error('Error details:', err.message, err.stack);
 
-            // If it's an "already submitted" error, show a friendly message and reload
-            if (err.message && err.message.includes('already submitted')) {
-                setError('You have already submitted this assessment. Click "Back to Assessments" to return.');
-            } else {
-                setError(err.message || 'Failed to load assessment');
+        } catch (primaryErr) {
+            console.warn('Primary fetch failed, trying SQL fallback:', primaryErr);
+
+            // Fallback to SQL Assessment API
+            try {
+                const response = await fetch(`/sql-assessment-details-api?assessment_id=${assessmentId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error('Failed to load assessment from fallback API');
+
+                const data = await response.json();
+
+                if (data && data.questions && data.questions.length > 0) {
+                    // Normalize SQL questions to expected format
+                    const normalizedQuestions = data.questions.map(q => ({
+                        ...q,
+                        shuffled_options: [q.option_a, q.option_b, q.option_c, q.option_d].filter(Boolean)
+                    }));
+
+                    setQuestions(normalizedQuestions);
+                    // Generate a pseudo-session ID for SQL assessments (client-side tracking only for now)
+                    const pseudoSessionId = `sql-session-${assessmentId}-${Date.now()}`;
+                    setSessionId(pseudoSessionId);
+                    setAssessmentData({
+                        name: data.name || 'SQL Assessment',
+                        duration: data.duration_minutes || 60
+                    });
+                    setTimeRemaining((data.duration_minutes || 60) * 60);
+                } else {
+                    throw new Error('No questions found in fallback API');
+                }
+            } catch (fallbackErr) {
+                console.error('All fetch attempts failed:', fallbackErr);
+                setError('Failed to load assessment. Please try again.');
             }
         } finally {
             setLoading(false);

@@ -27,6 +27,7 @@ import Content from './modules/ContentUploading/Content.jsx';
 import CodeEnvironment from './modules/CodeEnvironment/CodeEnvironment.jsx';
 import AssessmentDatasets from './modules/Assessments/AssessmentDatasets.jsx';
 import CohortContent from './modules/ContentUploading/CohortContent.jsx';
+import SQLAssessmentsList from './modules/SQLPlayground/SQLAssessmentsList.jsx';
 
 function KloudkraftAdminContent() {
   return (
@@ -139,6 +140,7 @@ function KloudkraftAdminContent() {
                           </ProtectedRoute>
                         }
                       />
+                      <Route path="/sql-playground/assessments" element={<SQLAssessmentsList />} />
                       <Route path="/assessment/take/:assessmentId" element={<TakeAssessment />} />
                       <Route path="/assessment/results/:sessionId" element={<AssessmentResults />} />
 
