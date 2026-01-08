@@ -66,6 +66,19 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/content-fetch-api/, ''),
         secure: false
+      },
+      '/sql-reports-api': {
+        target: 'https://w347g7cpkidsnsp3nfmg6gaf3i0fkvkq.lambda-url.eu-central-1.on.aws',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sql-reports-api/, ''),
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            // Remove duplicate header causing CORS error
+            delete proxyRes.headers['access-control-allow-origin'];
+            delete proxyRes.headers['Access-Control-Allow-Origin'];
+          });
+        }
       }
     }
   }
