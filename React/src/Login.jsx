@@ -22,6 +22,8 @@ const Login = () => {
             const { isSignedIn, nextStep } = await signIn({ username, password });
 
             if (isSignedIn) {
+                // Store password for VM API calls that require it
+                sessionStorage.setItem('userPassword', password);
                 await refreshAuth();
                 navigate('/dashboard');
             } else {
@@ -61,6 +63,7 @@ const Login = () => {
                             className="w-full px-4 py-3 bg-[#F1F3F5] dark:bg-gray-800 border-none rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            autoComplete="username"
                             required
                         />
                     </div>
@@ -77,6 +80,7 @@ const Login = () => {
                                 className="w-full px-4 py-3 bg-[#F1F3F5] dark:bg-gray-800 border-none rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-red-500 pr-12 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                autoComplete="current-password"
                                 required
                             />
                             <button

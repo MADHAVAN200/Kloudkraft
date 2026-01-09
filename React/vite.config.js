@@ -12,12 +12,6 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/assessment-api/, ''),
         secure: false
       },
-      '/assessment-mgmt-api': {
-        target: 'https://u5vjutu2euwnn2uhiertnt6fte0vrbht.lambda-url.eu-central-1.on.aws',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/assessment-mgmt-api/, ''),
-        secure: false
-      },
       '/sql-admin-api': {
         target: 'https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com',
         changeOrigin: true,
