@@ -37,7 +37,7 @@ function UsersAndCohorts() {
 
         try {
             // Using the new SQL Admin API directly
-            const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=users', {
+            const response = await fetch('/sql-admin-api/SQLAdmin?type=users', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -84,7 +84,7 @@ function UsersAndCohorts() {
 
         try {
             // Using the new SQL Admin API directly
-            const response = await fetch('https://x6uz5z6ju2.execute-api.us-west-2.amazonaws.com/SQLAdmin?type=cohorts', {
+            const response = await fetch('/sql-admin-api/SQLAdmin?type=cohorts', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });

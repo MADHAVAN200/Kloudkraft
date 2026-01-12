@@ -55,12 +55,12 @@ function CreateAssessment() {
     setLoadingDatasets(true);
     setDatasetError('');
     try {
-      // Use list_datasets API directly
+      // Use list_datasets API via proxy
       const payload = {
         action: "list_datasets"
       };
 
-      const response = await fetch('https://u5vjutu2euwnn2uhiertnt6fte0vrbht.lambda-url.eu-central-1.on.aws/', {
+      const response = await fetch('/assessment-mgmt-api/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -73,18 +73,8 @@ function CreateAssessment() {
       }
 
       const data = await response.json();
-
-      // Handle Lambda response structure
-      let responseBody = data;
-      if (data.body && typeof data.body === 'string') {
-        try {
-          responseBody = JSON.parse(data.body);
-        } catch (e) {
-          console.warn('Failed to parse data.body', e);
-        }
-      } else if (data.body) {
-        responseBody = data.body;
-      }
+      // Response comes directly, not wrapped in body (based on curl test)
+      const responseBody = data;
 
       if (responseBody && responseBody.success && responseBody.datasets) {
         setDatasets(responseBody.datasets);
@@ -183,7 +173,6 @@ function CreateAssessment() {
 
       if (responseBody && responseBody.success) {
         // alert(editId ? 'Assessment updated successfully!' : 'Assessment created successfully!');
-        sessionStorage.removeItem('cached_assessments');
         setShowSuccessModal(true);
       } else {
         alert(`Failed to ${editId ? 'update' : 'create'} assessment: ${responseBody?.message || 'Unknown error'}`);
@@ -198,19 +187,19 @@ function CreateAssessment() {
   if (showSuccessModal) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-        <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl transform scale-100 animate-in zoom-in-95 duration-200 text-center">
-          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-sm w-full shadow-2xl transform scale-100 animate-in zoom-in-95 duration-200 text-center">
+          <div className="w-20 h-20 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
               <span className="material-symbols-outlined text-white text-2xl font-bold">check</span>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Success!</h2>
-          <p className="text-gray-500 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Success!</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-8">
             Assessment has been {editId ? 'updated' : 'created'} successfully.
           </p>
           <button
             onClick={() => navigate('/assessments')}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+            className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-red-600 dark:hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
           >
             Go to AssessmentsList
           </button>
@@ -461,7 +450,7 @@ function CreateAssessment() {
   ];
 
   return (
-    <div className="w-full mt-6 px-4 md:px-8 transition-colors duration-300">
+    <div className="w-full max-w-full mt-6 px-6 md:px-12 transition-colors duration-300">
       <Breadcrumbs items={breadcrumbItems} />
 
       {/* Progress Indicator */}

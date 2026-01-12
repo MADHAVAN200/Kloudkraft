@@ -72,19 +72,37 @@ function SQLAssessmentsList() {
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API Error Response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
 
             const data = await response.json();
-            if (data && data.success) {
-                // Filter for SQL assessments: assumes SQL assessments store DB name in csv_s3_key 
-                // and do not end in .csv or start with s3://
-                const allAssessments = data.assessments || [];
-                const sqlAssessments = allAssessments.filter(a =>
-                    a.csv_s3_key && !a.csv_s3_key.endsWith('.csv') && !a.csv_s3_key.startsWith('s3://')
+
+            // Handle Lambda response structure (body might be stringified)
+            let responseBody = data;
+            if (data.body) {
+                try {
+                    responseBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+                } catch (e) {
+                    console.error("Failed to parse response body", e);
+                }
+            }
+
+            if (responseBody && responseBody.success) {
+                // Show all assessments provided by the management API
+                // Previously filtered out .csv, but created assessments have .csv keys
+                const allAssessments = responseBody.assessments || [];
+                // Filter for SQL assessments: These are created using the predefined datasets 
+                // which are stored in the 'datasets/' folder in S3.
+                // General assessments or others might use full s3:// paths or other prefixes.
+                const validAssessments = allAssessments.filter(a =>
+                    a.csv_s3_key && a.csv_s3_key.startsWith('datasets/')
                 );
-                setAssessments(sqlAssessments);
+                setAssessments(validAssessments);
             } else {
-                throw new Error(data?.message || 'Failed to fetch assessments');
+                throw new Error(responseBody?.message || 'Failed to fetch assessments');
             }
         } catch (err) {
             console.error('Error:', err);
@@ -111,7 +129,22 @@ function SQLAssessmentsList() {
             if (!response.ok) throw new Error('Failed to load assessment details');
 
             const data = await response.json();
-            setAssessmentDetails(data);
+
+            // Handle Lambda response structure (body might be stringified)
+            let details = data;
+            if (data.body) {
+                try {
+                    details = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+                } catch (e) {
+                    console.error("Failed to parse details body", e);
+                }
+            }
+
+            if (!details || (!details.questions && !details.assessment_id)) {
+                throw new Error('Invalid assessment details format');
+            }
+
+            setAssessmentDetails(details);
         } catch (err) {
             console.error(err);
             setDetailsError(err.message || 'Failed to fetch questions');

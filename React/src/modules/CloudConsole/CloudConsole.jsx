@@ -77,21 +77,21 @@ function CloudConsole() {
 
   // Show main credentials grid
   return (
-    <div className="w-full mt-2 ml-2 transition-colors duration-300">
+    <div className="w-full max-w-full mt-6 px-6 md:px-12 transition-colors duration-300">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cloud Console Credentials</h1>
       </div>
 
       {/* Credentials Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6">
         {credentials.map((credential) => (
           <button
             key={credential.id}
             onClick={() => handleCredentialClick(credential.type)}
-            className="bg-white dark:bg-white/5 dark:backdrop-blur-lg dark:border-white/10 rounded-xl shadow-sm border border-gray-200 p-6 text-center hover:scale-[1.05] hover:shadow-xl hover:border-red-200 dark:hover:border-red-500/30 transition-all duration-300 ease-in-out cursor-pointer"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center hover:scale-[1.05] hover:shadow-xl hover:border-red-500 dark:hover:border-red-500 transition-all duration-300 ease-in-out cursor-pointer group"
           >
-            <div className={`${credential.color} rounded-2xl p-4 inline-block mb-4`}>
+            <div className={`${credential.color} rounded-2xl p-4 inline-block mb-4 transition-transform group-hover:scale-110 duration-300`}>
               <span className="text-4xl">{credential.icon}</span>
             </div>
             <h3 className={`font-semibold text-sm ${credential.textColor}`}>
