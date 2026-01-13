@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Breadcrumbs from '../../components/Breadcrumbs';
+import { useAuth } from '../../contexts/AuthContext';
 
 const API_ENDPOINT = '/reports-api/';
 
@@ -78,6 +79,57 @@ function AssessmentReports() {
         (member.user_id?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     ) || [];
 
+    const { userRole } = useAuth(); // Get user role
+
+    // DUMMY DATA FOR CANDIDATE VIEW
+    const CANDIDATE_SCORES = [
+        { name: 'Cloud Fundamentals', date: '2025-01-10', score: 85, status: 'Completed' },
+        { name: 'DevOps Basics', date: '2025-01-12', score: 92, status: 'Completed' },
+        { name: 'AWS Essentials', date: '2025-01-05', score: 78, status: 'Completed' },
+        { name: 'Security Compliance', date: '2025-01-15', score: null, status: 'Pending' },
+    ];
+
+    if (userRole === 'candidate') {
+        return (
+            <div className="w-full mt-2 ml-2 transition-colors duration-300">
+                <Breadcrumbs items={breadcrumbItems} />
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Assessment Scores</h1>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                        View your performance history.
+                    </p>
+                </div>
+
+                <div className="bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <table className="min-w-full">
+                        <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Assessment Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Date Taken</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                            {CANDIDATE_SCORES.map((item, index) => (
+                                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{item.date}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status === 'Completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-800'}`}>
+                                            {item.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-gray-100">{item.score !== null ? `${item.score}%` : '-'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full mt-2 ml-2 transition-colors duration-300">
             <Breadcrumbs items={breadcrumbItems} />
@@ -94,7 +146,7 @@ function AssessmentReports() {
                 </div>
 
                 {/* Cohort Selector & Actions */}
-                <div className="bg-white dark:bg-brand-card p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 items-end sm:items-center">
+                <div className="bg-white dark:bg-brand-card p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 items-end">
                     <div className="flex-1 w-full">
                         <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
                             Cohort ID
@@ -217,8 +269,8 @@ function AssessmentReports() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${member.status === 'Completed'
-                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                            : 'bg-yellow-100 text-yellow-800'
+                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                        : 'bg-yellow-100 text-yellow-800'
                                                         }`}>
                                                         {member.status}
                                                     </span>

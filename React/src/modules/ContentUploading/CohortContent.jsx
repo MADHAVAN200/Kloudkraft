@@ -59,14 +59,18 @@ function CohortContent() {
 
             console.log('Processed Files List:', files);
 
-            const formattedContent = files.map((file, index) => ({
-                id: index + 1,
-                title: file.name.replace(/\.json$/, ''), // Remove .json extension for cleaner display
-                type: file.s3Key.endsWith('.json') ? 'link' : 'file', // Correctly identify links using s3Key
-                date: new Date(file.lastModified).toLocaleDateString(),
-                author: 'Admin',
-                url: file.url
-            }));
+            const formattedContent = files.map((file, index) => {
+                const isPdf = file.name.endsWith('.pdf') || (file.s3Key && file.s3Key.endsWith('.pdf'));
+                return {
+                    id: index + 1,
+                    title: file.name.replace(/\.json$/, ''), // Remove .json extension for cleaner display
+                    type: file.s3Key.endsWith('.json') ? 'link' : 'file', // Correctly identify links using s3Key
+                    isPdf: isPdf, // Flag for PDF files
+                    date: new Date(file.lastModified).toLocaleDateString(),
+                    author: 'Admin',
+                    url: file.url
+                };
+            });
 
             setContentList(formattedContent);
             setLoading(false);
@@ -201,7 +205,8 @@ function CohortContent() {
                 ...newContent,
                 url: finalUrl,
                 date: new Date().toISOString().split('T')[0],
-                author: 'Current User' // Placeholder
+                author: 'Current User', // Placeholder
+                isPdf: newContent.type === 'file' && selectedFile?.name.endsWith('.pdf')
             };
             setContentList([...contentList, newItem]);
             setIsModalOpen(false);
@@ -276,9 +281,11 @@ function CohortContent() {
 
                             <a
                                 href={item.url}
+                                target={item.type === 'link' || item.isPdf ? '_blank' : '_self'}
+                                rel={item.type === 'link' || item.isPdf ? 'noopener noreferrer' : ''}
                                 className="inline-flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:underline"
                             >
-                                {item.type === 'file' ? 'Download File' : 'Visit Link'}
+                                {item.type === 'file' ? (item.isPdf ? 'Open PDF' : 'Download File') : 'Visit Link'}
                             </a>
                         </div>
                     </div>

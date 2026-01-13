@@ -44,7 +44,7 @@ const StatusBadge = ({ state }) => {
     const styles = getStyles(state);
 
     return (
-        <div className={`px-3 py-1 rounded-full text-xs font-semibold border backdrop-blur-md flex items-center gap-2 w-fit transition-all duration-300 ${styles.bg} ${styles.text} ${styles.border} ${styles.glow}`}>
+        <div className={`px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-2 w-fit transition-all duration-300 ${styles.bg} ${styles.text} ${styles.border} ${styles.glow}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${styles.text.replace('text-', 'bg-')} animate-pulse`} />
             <span className="capitalize tracking-wider">{state || "Unknown"}</span>
         </div>
@@ -96,6 +96,25 @@ const VmManagement = () => {
 
     const fetchInstances = useCallback(async () => {
         if (!username) return;
+
+        // Cache Check
+        const cacheKey = `vms_cache_${username}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    console.log("Loading instances from cache");
+                    setInstances(parsed);
+                    setLoading(false);
+                    return;
+                }
+            } catch (e) {
+                console.error("Cache parsing error", e);
+                sessionStorage.removeItem(cacheKey);
+            }
+        }
+
         setLoading(true);
         try {
             console.log(`Fetching instances for user: ${username}`);
@@ -149,6 +168,13 @@ const VmManagement = () => {
             setLoading(false);
         }
     }, [username, showMessage]);
+
+    // Cache Persistence
+    useEffect(() => {
+        if (username && instances.length > 0) {
+            sessionStorage.setItem(`vms_cache_${username}`, JSON.stringify(instances));
+        }
+    }, [username, instances]);
 
     const fetchInstanceInfo = useCallback(async (instanceId) => {
         if (!username || !instanceId) return;
@@ -356,14 +382,27 @@ const VmManagement = () => {
                                     Manage your cloud environments
                                 </p>
                             </div>
-                            <div className="flex gap-3">
-                                <div className="px-4 py-2 rounded-2xl bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur-md shadow-sm">
-                                    <span className="block text-xs text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold">Total</span>
-                                    <span className="text-xl font-mono font-bold text-gray-800 dark:text-white">{instances.length}</span>
+                            <div className="flex gap-4">
+                                {/* Total Instances Card */}
+                                <div className="min-w-[180px] p-4 rounded-2xl bg-white dark:bg-black border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)] flex items-center justify-between group h-20 transition-transform hover:scale-105">
+                                    <div className="flex flex-col justify-center h-full">
+                                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-red-400 transition-colors">Total VMs</span>
+                                        <span className="text-3xl font-bold text-gray-900 dark:text-white leading-none mt-1">{instances.length}</span>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                        <FaServer className="text-blue-400 text-lg" />
+                                    </div>
                                 </div>
-                                <div className="px-4 py-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md shadow-sm">
-                                    <span className="block text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-widest font-bold">Active</span>
-                                    <span className="text-xl font-mono font-bold text-emerald-600 dark:text-emerald-400">{runningCount}</span>
+
+                                {/* Active Instances Card */}
+                                <div className="min-w-[180px] p-4 rounded-2xl bg-white dark:bg-black border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)] flex items-center justify-between group h-20 transition-transform hover:scale-105">
+                                    <div className="flex flex-col justify-center h-full">
+                                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-emerald-400 transition-colors">Active</span>
+                                        <span className="text-3xl font-bold text-gray-900 dark:text-white leading-none mt-1">{runningCount}</span>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                                        <FaCircle className="text-emerald-400 text-[10px] animate-pulse" />
+                                    </div>
                                 </div>
                             </div>
                         </header>
@@ -379,12 +418,11 @@ const VmManagement = () => {
                                     key={inst.instanceId}
                                     layoutId={inst.instanceId}
                                     onClick={() => { setSelectedInstance(inst); fetchInstanceInfo(inst.instanceId); }}
-                                    whileHover={{ scale: 1.01, backgroundColor: "rgba(220, 38, 38, 0.04)" }}
                                     whileTap={{ scale: 0.98 }}
-                                    className={`relative cursor-pointer group overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:border-red-500/20 hover:shadow-[0_0_15px_rgba(239,68,68,0.05)] ${selectedInstance?.instanceId === inst.instanceId
-                                        ? 'bg-blue-600/10 dark:bg-blue-500/10 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
-                                        : 'bg-white/60 dark:bg-white/5 border-gray-200 dark:border-white/10'
-                                        } backdrop-blur-xl`}
+                                    className={`relative cursor-pointer group overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:border-red-500 ${selectedInstance?.instanceId === inst.instanceId
+                                        ? 'bg-white dark:bg-gray-800 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.15)] ring-1 ring-red-500'
+                                        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                                        }`}
                                 >
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-4">
@@ -426,7 +464,7 @@ const VmManagement = () => {
                                 transition={{ type: "spring", damping: 25, stiffness: 120 }}
                                 className="w-[420px] shrink-0 sticky top-0 h-[calc(100vh-2rem)] flex flex-col"
                             >
-                                <div className="h-full flex flex-col rounded-3xl overflow-hidden border border-white/20 dark:border-white/10 bg-white/70 dark:bg-[#121214]/60 backdrop-blur-2xl shadow-2xl">
+                                <div className="h-full flex flex-col rounded-3xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xl">
 
                                     {/* Glass Header */}
                                     <div className="relative p-8 pb-12 overflow-hidden">
@@ -454,7 +492,7 @@ const VmManagement = () => {
                                         <div className="space-y-6">
 
                                             {/* Details Card */}
-                                            <div className="bg-white dark:bg-[#1E1E21]/80 backdrop-blur-md p-5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-lg">
+                                            <div className="bg-gray-50 dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
                                                         <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1 block">Public IP</label>
@@ -583,7 +621,7 @@ const VmManagement = () => {
                                         autoComplete="current-password"
                                     />
                                 </div>
-                                <div className="flex border-t border-gray-100 dark:border-white/5">
+                                <div className="flex border-t border-gray-100 dark:border-gray-700">
                                     <button type="button" onClick={() => setPasswordPromptOpen(false)} className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">CANCEL</button>
                                     <div className="w-px bg-gray-100 dark:bg-white/5" />
                                     <button type="submit" className="flex-1 py-4 text-sm font-bold text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors">CONFIRM</button>

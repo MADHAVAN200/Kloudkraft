@@ -61,49 +61,56 @@ function SQLAssessmentsList() {
         fetchAssessments();
     }, []);
 
+    // DUMMY DATA FOR DEVELOPMENT
+    const DUMMY_ASSESSMENTS = [
+        {
+            assessment_id: 'dummy_1',
+            name: 'Basic SQL Concepts',
+            status: 'Active',
+            csv_s3_key: 'datasets/employees.csv',
+            num_questions: 10,
+            duration_minutes: 30
+        },
+        {
+            assessment_id: 'dummy_2',
+            name: 'Advanced Joins & Aggregations',
+            status: 'Active',
+            csv_s3_key: 'datasets/sales_records.csv',
+            num_questions: 15,
+            duration_minutes: 45
+        },
+        {
+            assessment_id: 'dummy_3',
+            name: 'Database Filtering',
+            status: 'Active',
+            csv_s3_key: 'datasets/library_system.csv',
+            num_questions: 8,
+            duration_minutes: 20
+        },
+        {
+            assessment_id: 'dummy_4',
+            name: 'Subqueries Masterclass',
+            status: 'Draft',
+            csv_s3_key: 'datasets/financials.csv',
+            num_questions: 12,
+            duration_minutes: 40
+        }
+    ];
+
     const fetchAssessments = async () => {
         setLoading(true);
         setError(null);
         try {
-            const payload = { action: "list_assessments" };
-            const response = await fetch('/assessment-mgmt-api/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            // SIMULATING API CALL WITH DUMMY DATA
+            // const payload = { action: "list_assessments" };
+            // const response = await fetch('/assessment-mgmt-api/', ...
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API Error Response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-            }
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 600));
 
-            const data = await response.json();
+            // Use dummy data directly
+            setAssessments(DUMMY_ASSESSMENTS);
 
-            // Handle Lambda response structure (body might be stringified)
-            let responseBody = data;
-            if (data.body) {
-                try {
-                    responseBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-                } catch (e) {
-                    console.error("Failed to parse response body", e);
-                }
-            }
-
-            if (responseBody && responseBody.success) {
-                // Show all assessments provided by the management API
-                // Previously filtered out .csv, but created assessments have .csv keys
-                const allAssessments = responseBody.assessments || [];
-                // Filter for SQL assessments: These are created using the predefined datasets 
-                // which are stored in the 'datasets/' folder in S3.
-                // General assessments or others might use full s3:// paths or other prefixes.
-                const validAssessments = allAssessments.filter(a =>
-                    a.csv_s3_key && a.csv_s3_key.startsWith('datasets/')
-                );
-                setAssessments(validAssessments);
-            } else {
-                throw new Error(responseBody?.message || 'Failed to fetch assessments');
-            }
         } catch (err) {
             console.error('Error:', err);
             setError(err.message);
@@ -112,45 +119,9 @@ function SQLAssessmentsList() {
         }
     };
 
-    const handleStartAssessment = async (assessment) => {
-        setActiveAssessment(assessment);
-        setLoadingDetails(true);
-        setDetailsError(null);
-        setAssessmentDetails(null);
-        setCurrentQuestionIndex(0);
-
-        try {
-            // Use the INDEPENDENT SQL Assessment Details API
-            const response = await fetch(`/sql-assessment-details-api?assessment_id=${assessment.assessment_id}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (!response.ok) throw new Error('Failed to load assessment details');
-
-            const data = await response.json();
-
-            // Handle Lambda response structure (body might be stringified)
-            let details = data;
-            if (data.body) {
-                try {
-                    details = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-                } catch (e) {
-                    console.error("Failed to parse details body", e);
-                }
-            }
-
-            if (!details || (!details.questions && !details.assessment_id)) {
-                throw new Error('Invalid assessment details format');
-            }
-
-            setAssessmentDetails(details);
-        } catch (err) {
-            console.error(err);
-            setDetailsError(err.message || 'Failed to fetch questions');
-        } finally {
-            setLoadingDetails(false);
-        }
+    const handleStartAssessment = (assessment) => {
+        // Redirect to the new full-screen SQL workspace
+        navigate(`/sql-playground/workspace/${assessment.assessment_id}`);
     };
 
     const handleBackToList = () => {

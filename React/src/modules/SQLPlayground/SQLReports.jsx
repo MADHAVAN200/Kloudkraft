@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Breadcrumbs from '../../components/Breadcrumbs';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SQL_PLAYGROUND_API = '/sql-reports-api/';
 
@@ -159,6 +160,57 @@ function SQLReports() {
         (c.cohort?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     ) || [];
 
+    const { userRole } = useAuth(); // Get user role
+
+    // DUMMY SQL DATA FOR CANDIDATE
+    const CANDIDATE_SQL_SCORES = [
+        { name: 'Basic SQL Concepts', date: '2025-01-11', score: 90, status: 'Completed' },
+        { name: 'Advanced Joins', date: '2025-01-14', score: 82, status: 'Completed' },
+        { name: 'Database Filtering', date: '2025-01-08', score: 75, status: 'Completed' },
+        { name: 'Subqueries Masterclass', date: null, score: null, status: 'Pending' }
+    ];
+
+    if (userRole === 'candidate') {
+        return (
+            <div className="w-full mt-2 ml-2 transition-colors duration-300">
+                <Breadcrumbs items={breadcrumbItems} />
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My SQL Assessment Scores</h1>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                        View your SQL performance history.
+                    </p>
+                </div>
+
+                <div className="bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <table className="min-w-full">
+                        <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Assessment Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Date Taken</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                            {CANDIDATE_SQL_SCORES.map((item, index) => (
+                                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{item.date || '-'}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status === 'Completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-800'}`}>
+                                            {item.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-gray-100">{item.score !== null ? `${item.score}%` : '-'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full mt-2 ml-2 transition-colors duration-300">
             <Breadcrumbs items={breadcrumbItems} />
@@ -175,7 +227,7 @@ function SQLReports() {
                 </div>
 
                 {/* Cohort Selector & Actions */}
-                <div className="bg-white dark:bg-brand-card p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 items-end sm:items-center">
+                <div className="bg-white dark:bg-brand-card p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 items-end">
                     <div className="flex-1 w-full">
                         <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
                             Cohort ID
@@ -212,8 +264,8 @@ function SQLReports() {
                             onClick={handleDownload}
                             disabled={downloading}
                             className={`w-full sm:w-auto flex items-center justify-center gap-2 font-medium py-2.5 px-6 rounded-lg transition-colors disabled:opacity-50 ${!reportData?.stats?.excel_download_url
-                                    ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                    : 'bg-red-500 hover:bg-red-600 text-white'
+                                ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                : 'bg-red-500 hover:bg-red-600 text-white'
                                 }`}
                         >
                             {downloading ? (
@@ -300,8 +352,8 @@ function SQLReports() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${member.status === 'Completed'
-                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                            : 'bg-yellow-100 text-yellow-800'
+                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                        : 'bg-yellow-100 text-yellow-800'
                                                         }`}>
                                                         {member.status}
                                                     </span>

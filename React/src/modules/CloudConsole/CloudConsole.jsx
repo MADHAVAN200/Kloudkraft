@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FaAws, FaMicrosoft, FaGithub, FaGoogle } from 'react-icons/fa';
+import { VscAzure } from 'react-icons/vsc';
 import AWSCredentials from '../../components/AWSCredentials.jsx';
 import CredentialError from '../../components/CredentialError.jsx';
 
@@ -11,48 +13,48 @@ function CloudConsole() {
   const credentials = [
     {
       id: 1,
-      name: 'AWS Credentials',
-      icon: '☁️',
-      color: 'bg-orange-50 dark:bg-orange-900/20',
-      textColor: 'text-orange-600 dark:text-orange-400',
+      name: 'AWS',
+      icon: FaAws,
+      color: 'text-[#FF9900]',
+      bgColor: 'hover:bg-[#FF9900]/10 hover:border-[#FF9900]/50',
       type: 'aws',
-      displayName: 'AWS',
+      displayName: 'Amazon Web Services',
     },
     {
       id: 2,
-      name: 'AZURE Credentials',
-      icon: '🔷',
-      color: 'bg-blue-50 dark:bg-blue-900/20',
-      textColor: 'text-blue-600 dark:text-blue-400',
+      name: 'Azure',
+      icon: VscAzure,
+      color: 'text-[#0089D6]',
+      bgColor: 'hover:bg-[#0089D6]/10 hover:border-[#0089D6]/50',
       type: 'azure',
-      displayName: 'AZURE',
+      displayName: 'Microsoft Azure',
     },
     {
       id: 3,
-      name: 'GCP Credentials',
-      icon: '☁️',
-      color: 'bg-red-50 dark:bg-red-900/20',
-      textColor: 'text-red-600 dark:text-red-400',
+      name: 'GCP',
+      icon: FaGoogle,
+      color: 'text-[#4285F4]',
+      bgColor: 'hover:bg-[#4285F4]/10 hover:border-[#4285F4]/50',
       type: 'gcp',
-      displayName: 'GCP',
+      displayName: 'Google Cloud Platform',
     },
     {
       id: 4,
-      name: 'MS365 Credentials',
-      icon: '📧',
-      color: 'bg-purple-50 dark:bg-purple-900/20',
-      textColor: 'text-purple-600 dark:text-purple-400',
+      name: 'M365',
+      icon: FaMicrosoft,
+      color: 'text-[#EA4335]', // Using Microsoft generic or specific color
+      bgColor: 'hover:bg-[#EA4335]/10 hover:border-[#EA4335]/50',
       type: 'ms365',
-      displayName: 'MS365',
+      displayName: 'Microsoft 365',
     },
     {
       id: 5,
-      name: 'GITCOPILOT Credentials',
-      icon: '🤖',
-      color: 'bg-indigo-50 dark:bg-indigo-900/20',
-      textColor: 'text-indigo-600 dark:text-indigo-400',
+      name: 'Copilot',
+      icon: FaGithub,
+      color: 'text-black dark:text-white',
+      bgColor: 'hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-500',
       type: 'gitcopilot',
-      displayName: 'GITCOPILOT',
+      displayName: 'GitHub Copilot',
     },
   ];
 
@@ -77,28 +79,39 @@ function CloudConsole() {
 
   // Show main credentials grid
   return (
-    <div className="w-full max-w-full mt-6 px-6 md:px-12 transition-colors duration-300">
+    <div className="w-full h-full p-6 md:p-12 transition-colors duration-300">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cloud Console Credentials</h1>
+      <div className="mb-10">
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Cloud Console</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">Manage access and credentials for your cloud environments</p>
       </div>
 
       {/* Credentials Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-        {credentials.map((credential) => (
-          <button
-            key={credential.id}
-            onClick={() => handleCredentialClick(credential.type)}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center hover:scale-[1.05] hover:shadow-xl hover:border-red-500 dark:hover:border-red-500 transition-all duration-300 ease-in-out cursor-pointer group"
-          >
-            <div className={`${credential.color} rounded-2xl p-4 inline-block mb-4 transition-transform group-hover:scale-110 duration-300`}>
-              <span className="text-4xl">{credential.icon}</span>
-            </div>
-            <h3 className={`font-semibold text-sm ${credential.textColor}`}>
-              {credential.name}
-            </h3>
-          </button>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        {credentials.map((credential) => {
+          const Icon = credential.icon;
+          return (
+            <button
+              key={credential.id}
+              onClick={() => handleCredentialClick(credential.type)}
+              className={`
+                    relative group flex flex-col items-center justify-center p-8 h-48 rounded-2xl 
+                    bg-white dark:bg-[#0F1014] 
+                    border border-gray-200 dark:border-gray-800 
+                    shadow-sm hover:shadow-xl 
+                    transition-all duration-300 ease-out 
+                    ${credential.bgColor}
+                `}
+            >
+              <div className={`text-5xl mb-4 transition-transform duration-300 group-hover:scale-110 ${credential.color}`}>
+                <Icon />
+              </div>
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                {credential.name}
+              </h3>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
