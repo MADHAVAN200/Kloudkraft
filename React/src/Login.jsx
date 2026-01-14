@@ -42,8 +42,15 @@ const Login = () => {
     };
 
     return (
-        <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F9FA] dark:bg-brand-dark transition-colors duration-300">
-            <div className="w-full max-w-[400px] bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-300">
+        <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F9FA] dark:bg-brand-dark transition-colors duration-300 relative overflow-hidden">
+            {/* Watermark */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
+                <span className="text-[10rem] md:text-[15rem] font-bold text-gray-200/60 dark:text-gray-700/20 rotate-0 whitespace-nowrap">
+                    Labskraft
+                </span>
+            </div>
+
+            <div className="w-full max-w-[400px] bg-white/60 dark:bg-brand-card/60 backdrop-blur-md rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-300 z-10">
                 <div className="space-y-1 pb-6">
                     <h1 className="text-center text-2xl font-bold tracking-tight text-[#1A1A1A] dark:text-white">
                         Sign In
