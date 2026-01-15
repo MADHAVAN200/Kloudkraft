@@ -95,7 +95,6 @@ function CreateSQLAssessment() {
     const validateStep = () => {
         switch (currentStep) {
             case 1:
-            case 1:
                 return selectedCohorts.length > 0 || selectedUsers.length > 0;
             case 2:
                 return selectedDatabase !== '';

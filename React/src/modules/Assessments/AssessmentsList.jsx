@@ -36,7 +36,6 @@ function AssessmentsList({ onBack }) {
         }
 
         try {
-            // Use direct format (no body wrapper)
             const payload = {
                 action: "list_assessments"
             };
@@ -55,15 +54,30 @@ function AssessmentsList({ onBack }) {
 
             const data = await response.json();
 
-            // Parse response body
-            const responseBody = data;
+            // Handle both wrapped and unwrapped responses just in case, though User snippet shows direct body
+            // If data has a body string (Lambda Proxy default), parse it. 
+            // If it's already the object (Custom domain/middleware), use it.
+            let responseBody = data;
+            if (data.body && typeof data.body === 'string') {
+                try {
+                    responseBody = JSON.parse(data.body);
+                } catch (e) {
+                    console.warn('Could not parse response body string, using raw data');
+                }
+            }
 
             if (responseBody && responseBody.success) {
                 const fetchedAssessments = responseBody.assessments || [];
                 setAssessments(fetchedAssessments);
                 sessionStorage.setItem('cached_assessments', JSON.stringify(fetchedAssessments));
             } else {
-                throw new Error(responseBody?.message || 'Failed to fetch assessments');
+                // Fallback if success flag is missing but assessments exist
+                if (responseBody.assessments) {
+                    setAssessments(responseBody.assessments);
+                    sessionStorage.setItem('cached_assessments', JSON.stringify(responseBody.assessments));
+                } else {
+                    throw new Error(responseBody?.message || 'Failed to fetch assessments');
+                }
             }
 
         } catch (err) {
@@ -76,7 +90,6 @@ function AssessmentsList({ onBack }) {
 
     const deleteAssessment = async (assessmentId) => {
         try {
-            // Use direct format (no body wrapper)
             const payload = {
                 action: "delete_assessment",
                 assessment_id: assessmentId
@@ -91,9 +104,8 @@ function AssessmentsList({ onBack }) {
             });
 
             if (response.ok) {
-                alert('Assessment deleted successfully');
                 setDeleteConfirm(null);
-                fetchAssessments(true); // Refresh the list forcefully
+                fetchAssessments(true);
             } else {
                 alert('Failed to delete assessment');
             }
@@ -104,7 +116,6 @@ function AssessmentsList({ onBack }) {
     };
 
     const handleEdit = (assessment) => {
-        // Navigate to create assessment page with edit mode
         navigate(`/create-assessment?edit=${assessment.assessment_id}`, {
             state: { assessment }
         });
@@ -192,23 +203,35 @@ function AssessmentsList({ onBack }) {
                         <div key={assessment.assessment_id} className="bg-white dark:bg-brand-card rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col transition hover:shadow-md hover:border-red-100 dark:hover:border-red-900/30 group">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center text-red-600 dark:text-red-400 font-bold text-xl group-hover:scale-110 transition-transform">
-                                    {assessment.name.charAt(0).toUpperCase()}
+                                    {assessment.name ? assessment.name.charAt(0).toUpperCase() : 'A'}
                                 </div>
-                                {assessment.random_questions && (
-                                    <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-[10px]">shuffle</span>
-                                        Randomized
-                                    </span>
-                                )}
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${(assessment.status || '').toLowerCase() === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
+                                    {assessment.status || 'Draft'}
+                                </span>
                             </div>
-
                             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 truncate" title={assessment.name}>{assessment.name}</h3>
                             <div className="text-xs text-gray-400 dark:text-gray-500 mb-4 font-mono">ID: {assessment.assessment_id.substring(0, 8)}...</div>
 
                             <div className="text-sm text-gray-500 dark:text-gray-400 space-y-2 mb-6 flex-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-base">database</span>
-                                    Dataset: <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[150px]" title={assessment.csv_s3_key}>{assessment.csv_s3_key || 'N/A'}</span>
+                                <div className="flex items-start gap-2">
+                                    <span className="material-symbols-outlined text-base mt-0.5">groups</span>
+                                    <div className="flex-1">
+                                        <span className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Cohorts</span>
+                                        {assessment.assigned_cohorts && assessment.assigned_cohorts.length > 0 ? (
+                                            <div className="flex flex-wrap gap-1">
+                                                {assessment.assigned_cohorts.slice(0, 2).map((cohort, i) => (
+                                                    <span key={i} className="inline-block px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-[10px] font-medium border border-blue-100 dark:border-blue-800">
+                                                        {cohort}
+                                                    </span>
+                                                ))}
+                                                {assessment.assigned_cohorts.length > 2 && (
+                                                    <span className="text-[10px] text-gray-400">+{assessment.assigned_cohorts.length - 2} more</span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-400 italic">None assigned</span>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="material-symbols-outlined text-base">list</span>

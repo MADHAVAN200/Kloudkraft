@@ -61,67 +61,72 @@ function SQLAssessmentsList() {
         fetchAssessments();
     }, []);
 
-    // DUMMY DATA FOR DEVELOPMENT
-    const DUMMY_ASSESSMENTS = [
-        {
-            assessment_id: 'dummy_1',
-            name: 'Basic SQL Concepts',
-            status: 'Active',
-            csv_s3_key: 'datasets/employees.csv',
-            num_questions: 10,
-            duration_minutes: 30
-        },
-        {
-            assessment_id: 'dummy_2',
-            name: 'Advanced Joins & Aggregations',
-            status: 'Active',
-            csv_s3_key: 'datasets/sales_records.csv',
-            num_questions: 15,
-            duration_minutes: 45
-        },
-        {
-            assessment_id: 'dummy_3',
-            name: 'Database Filtering',
-            status: 'Active',
-            csv_s3_key: 'datasets/library_system.csv',
-            num_questions: 8,
-            duration_minutes: 20
-        },
-        {
-            assessment_id: 'dummy_4',
-            name: 'Subqueries Masterclass',
-            status: 'Draft',
-            csv_s3_key: 'datasets/financials.csv',
-            num_questions: 12,
-            duration_minutes: 40
-        }
-    ];
-
     const fetchAssessments = async () => {
         setLoading(true);
         setError(null);
         try {
-            // SIMULATING API CALL WITH DUMMY DATA
-            // const payload = { action: "list_assessments" };
-            // const response = await fetch('/assessment-mgmt-api/', ...
+            const payload = { action: "list_assessments" };
 
-            // Simulate network delay
-            await new Promise(resolve => setTimeout(resolve, 600));
+            const response = await fetch('/assessment-mgmt-api/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
 
-            // Use dummy data directly
-            setAssessments(DUMMY_ASSESSMENTS);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Assume the API structure matches AssessmentsList.jsx
+            if (data && data.success) {
+                // Optional: Filter for SQL assessments if a type is provided in the future
+                setAssessments(data.assessments || []);
+            } else {
+                setAssessments(data.assessments || []); // Fallback if success flag isn't strictly used but assessments are there
+            }
 
         } catch (err) {
-            console.error('Error:', err);
+            console.error('Error fetching assessments:', err);
             setError(err.message);
         } finally {
             setLoading(false);
         }
     };
 
+    const fetchAssessmentDetails = async (assessment) => {
+        setLoadingDetails(true);
+        setDetailsError(null);
+        try {
+            // Support both assessment_id (preferred) and name, matching the Python API
+            const queryParam = assessment.assessment_id
+                ? `assessment_id=${assessment.assessment_id}`
+                : `name=${encodeURIComponent(assessment.name)}`;
+
+            const response = await fetch(`/sql-assessment-details-api?${queryParam}`);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Failed to fetch assessment details');
+            }
+
+            const data = await response.json();
+            setAssessmentDetails(data);
+        } catch (err) {
+            console.error('Error fetching assessment details:', err);
+            setDetailsError(err.message);
+        } finally {
+            setLoadingDetails(false);
+        }
+    };
+
     const handleStartAssessment = (assessment) => {
-        // Redirect to the new full-screen SQL workspace
-        navigate(`/sql-playground/workspace/${assessment.assessment_id}`);
+        setActiveAssessment(assessment);
+        fetchAssessmentDetails(assessment);
     };
 
     const handleBackToList = () => {

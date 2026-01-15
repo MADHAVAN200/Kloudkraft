@@ -24,6 +24,13 @@ const Breadcrumbs = ({ items }) => {
                                 >
                                     {item.label}
                                 </Link>
+                            ) : item.onClick ? (
+                                <button
+                                    onClick={item.onClick}
+                                    className="text-sm font-medium text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors cursor-pointer bg-transparent border-none p-0"
+                                >
+                                    {item.label}
+                                </button>
                             ) : (
                                 <span className="text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-md">
                                     {item.label}
